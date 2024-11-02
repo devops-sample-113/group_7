@@ -1,6 +1,5 @@
 from tkinter import *
 import tkinter as tk
-import openpyxl
 import subprocess
 
 ##前往查詢
