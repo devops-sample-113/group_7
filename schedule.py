@@ -20,12 +20,20 @@ try:
 except FileNotFoundError:
     number="輸入錯誤"
 
+
+##搜尋學號/教師證號/助教證號對應的個人課表路徑
 def search(id):
     #開啟excel
     path='C:\\Users\\User\\Documents\\GitHub\\group_7\\資料庫.xlsx'
     workbook=openpyxl.load_workbook(path)
+
     #選擇工作表
-    worksheet=workbook["學生"]
+    if number[0]=="D":
+        worksheet=workbook["學生"]
+    elif number[0]=="T":
+        worksheet=workbook["教授"]
+    elif number[0]=="A":
+        worksheet=workbook["助教"]
 
     for row in worksheet.iter_rows(min_row=2, values_only=True):  # 從第2行開始（假設第1行是標題）
         name, id_, schedule_path = row[:3]  # 解包每一行的資料
