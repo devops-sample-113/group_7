@@ -11,7 +11,7 @@ def return_search():
 ##課表頁面視窗初始設定
 Swindow=Tk()
 Swindow.title("你的個人課表")
-Swindow.geometry('540x430+390+75')
+Swindow.geometry('490x410+390+75')
 
 ##獲取輸入資料(學號)
 try:
@@ -30,11 +30,10 @@ def search(id):
     #選擇工作表
     if number[0]=="D":
         worksheet=workbook["學生"]
-    elif number[0]=="T":
-        worksheet=workbook["教授"]
     elif number[0]=="A":
         worksheet=workbook["助教"]
-    else: return "無效的格式"
+    else:
+        worksheet=workbook["教授"]
 
     for row in worksheet.iter_rows(min_row=2, values_only=True):  # 從第2行開始（假設第1行是標題）
         name, id_, schedule_path = row[:3]  # 解包每一行的資料
@@ -43,7 +42,7 @@ def search(id):
         if id_ == id:
             return schedule_path
         
-    return f"找不到 {id} "
+    return f"找不到   {id} "
 
 #查詢課表
 path=search(number)
@@ -90,7 +89,7 @@ label_prompt = tk.Label(Swindow, text="          正在查詢：")
 label_prompt.place(x=50,y=360,anchor="center")
 
 label_data = tk.Label(Swindow, text=number)
-label_data.place(x=150,y=360,anchor="center")
+label_data.place(x=135,y=360,anchor="center")
 
 ##將data.txt暫存資料清空
 with open("data.txt","w") as file:
@@ -98,6 +97,6 @@ with open("data.txt","w") as file:
 
 ##返回按鈕
 back=Button(Swindow,text="返回",anchor="s",command=return_search)
-back.place(x=500,y=360,anchor="center")
+back.place(x=435,y=360,anchor="center")
 
 Swindow.mainloop()
