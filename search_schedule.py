@@ -15,7 +15,7 @@ def show_search():
 ##課表搜尋頁面視窗初始設定
 search_window=Tk()
 search_window.title("個人課表查詢")
-search_window.geometry('500x400+390+75')
+search_window.geometry('300x150+480+210')
 
 ##學號輸入框
 number=tk.Entry(search_window)
