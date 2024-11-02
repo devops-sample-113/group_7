@@ -1,7 +1,6 @@
 from tkinter import *
 import tkinter as tk
 import openpyxl
-import subprocess
 
 Swindow = Tk()
 Swindow.title("選課系統")
@@ -71,11 +70,14 @@ for row_idx, row in enumerate(worksheet.iter_rows(min_row=2, max_row=53, min_col
     entry.grid(row=row_idx, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
     
     # 確認按鈕功能
-    def search():
-        Swindow.destroy()
-        subprocess.Popen(["python", "search_course.py"])
+    def number_search():
+        #取得輸入資料並前往查詢
+        with open("data.txt","w") as file:
+            file.write(number.get())
 
-    confirm_button = tk.Button(content_frame, text="確認", command=confirm_action)
+        subprocess.Popen(["python", "number_search.py"])  # 執行第二個程式
+
+    confirm_button = tk.Button(content_frame, text="確認", command=number_search)
     confirm_button.grid(row=row_idx, column=len(headers), padx=2, pady=2, sticky="nsew")
 
 # 綁定觸控面板/滑鼠滾輪滾動事件
