@@ -13,6 +13,13 @@ Swindow=Tk()
 Swindow.title("你的個人課表")
 Swindow.geometry('500x400+390+75')
 
+##獲取輸入資料(學號)
+try:
+    with open("data.txt","r") as file:
+        number=file.read()
+except FileNotFoundError:
+    number="輸入錯誤"
+
 ##個人課表顯示
 #開啟excel
 path='C:\\Users\\User\\Documents\\GitHub\\group_7\\個人課表\\D1234567.xlsx'
@@ -33,5 +40,16 @@ for col in range(6):
 ##返回按鈕
 back=Button(Swindow,text="返回",anchor="s",command=return_search)
 back.grid(row=20,column=5,pady=10)
+
+##顯示下方提示文字
+label_prompt = tk.Label(Swindow, text="          正在查詢：")
+label_prompt.grid(row=25, column=0, padx=10, pady=5)  # 設定位置為第 0 行，第 0 列
+
+label_data = tk.Label(Swindow, text=number)
+label_data.grid(row=25, column=1, padx=10, pady=10)  # 設定位置為第 1 行，第 0 列
+
+##將data.txt暫存資料清空
+with open("data.txt","w") as file:
+        file.write("")
 
 Swindow.mainloop()
