@@ -1,10 +1,16 @@
 from tkinter import *
 import tkinter as tk
 import openpyxl
+import subprocess
+
+##返回課表搜尋頁面
+def return_search():
+    Swindow.destroy()  # 關閉當前視窗
+    subprocess.Popen(["python", "search_schedule.py"])  # 執行第二個程式
 
 ##課表頁面視窗初始設定
 Swindow=Tk()
-Swindow.title("個人課表查詢")
+Swindow.title("你的個人課表")
 Swindow.geometry('500x400+390+75')
 
 ##個人課表顯示
@@ -25,7 +31,7 @@ for col in range(6):
     Swindow.grid_columnconfigure(col, weight=1)
 
 ##返回按鈕
-back=Button(Swindow,text="返回",anchor="s")
+back=Button(Swindow,text="返回",anchor="s",command=return_search)
 back.grid(row=20,column=5,pady=10)
 
 Swindow.mainloop()
