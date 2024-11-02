@@ -7,7 +7,7 @@ Swindow.title("選課系統")
 Swindow.geometry("1500x1000")  # 設置主視窗的大小
 
 # 設置 Canvas 和 Scrollbar，將整個內容放入 Canvas 中
-canvas = Canvas(Swindow)
+canvas = Canvas(Swindow, highlightthickness=0)
 scrollbar = Scrollbar(Swindow, orient="vertical", command=canvas.yview)
 scrollbar.pack(side="right", fill="y")
 canvas.configure(yscrollcommand=scrollbar.set)
@@ -59,11 +59,23 @@ path = '/Users/hayashitogi/Documents/GitHub/group_7/資料庫.xlsx'
 workbook = openpyxl.load_workbook(path)
 worksheet = workbook["課程"]
 
-# 讀取 1-39 行，A-Ｅ列的內容顯示在 Label 中
+# 讀取 1-39 行，A-E 列的內容顯示在 Label 中，並在「加退選匡」列新增輸入框和確認按鈕
 for row_idx, row in enumerate(worksheet.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
     for col_idx, value in enumerate(row):
         label = tk.Label(content_frame, text=value if value is not None else "", borderwidth=1, relief="solid", padx=5, pady=5)
         label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
+    
+    # 在「加退選匡」列添加輸入框和確認按鈕
+    entry = tk.Entry(content_frame, width=15)
+    entry.grid(row=row_idx, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
+    
+    # 確認按鈕功能
+    def confirm_action(entry_widget=entry):
+        student_id = entry_widget.get()
+        print(f"學號 {student_id} 已確認")  # 這裡可以替換成其他操作，例如存入資料庫等
+
+    confirm_button = tk.Button(content_frame, text="確認", command=confirm_action)
+    confirm_button.grid(row=row_idx, column=len(headers), padx=2, pady=2, sticky="nsew")
 
 # 綁定觸控面板/滑鼠滾輪滾動事件
 def on_mouse_wheel(event):
