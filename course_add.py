@@ -1,6 +1,7 @@
 from tkinter import *
 import tkinter as tk
 import openpyxl
+from tkinter import messagebox
 
 Swindow = Tk()
 Swindow.title("選課系統")
@@ -51,9 +52,6 @@ def open_new_window():
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
 button_pop.place(x=10, y=10)
 
-# 標題行
-headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
-
 # 計算每列的寬度，使其隨 Canvas 的寬度自動調整
 def adjust_column_widths(event=None):
     canvas_width = canvas.winfo_width()
@@ -65,13 +63,25 @@ def adjust_column_widths(event=None):
 # 更新標題行和資料行的寬度
 canvas.bind("<Configure>", adjust_column_widths)
 
+# 標題行
+headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
+
 # 開啟 Excel 文件
 path = '/Users/hayashitogi/Documents/GitHub/group_7/資料庫.xlsx'
 workbook = openpyxl.load_workbook(path)
-worksheet = workbook["課程"]
+worksheet_courses = workbook["課程"]
+worksheet_students = workbook["學生"]
+
+def search(id):
+    for row in worksheet_students.iter_rows(min_row=2, values_only=True):
+        name, id_, schedule_path = row[:3]
+        if id_ == id:
+            schedule_path = f"/Users/hayashitogi/Documents/GitHub/group_7/個人課表/{id}.xlsx"
+            return schedule_path
+    return None
 
 # 讀取 1-39 行，A-E 列的內容顯示在 Label 中，並在「加退選匡」列新增輸入框和確認按鈕
-for row_idx, row in enumerate(worksheet.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
+for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
     for col_idx, value in enumerate(row):
         label = tk.Label(content_frame, text=value if value is not None else "", borderwidth=1, relief="solid", padx=5, pady=5)
         label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
@@ -81,12 +91,52 @@ for row_idx, row in enumerate(worksheet.iter_rows(min_row=2, max_row=53, min_col
     entry.grid(row=row_idx, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
     
     # 確認按鈕功能
-    def number_search():
-        #取得輸入資料並前往查詢
-        with open("data.txt","w") as file:
-            file.write(number.get())
+    def number_search(entry=entry):
+        # 取得輸入資料
+        student_id = entry.get()
+        if not student_id:
+            messagebox.showwarning("錯誤", "請輸入學號")  # 顯示提示框
+        else:
+            # 儲存學號並清空輸入框
+            with open("data.txt", "w") as file:
+                file.write(student_id)
+            entry.delete(0, END)  # 清空輸入框
+            ##獲取輸入資料(學號)
+            try:
+                with open("data.txt","r") as file:
+                    number=file.read()
+            except FileNotFoundError:
+                number="輸入錯誤"
+            
+            path = search(number)
+            messagebox.showinfo("正確", path)
+            if path:
+                # 若找到課表路徑，則開啟新視窗並顯示課表
+                display_schedule(path)
+            else:
+                messagebox.showinfo("錯誤", "學號輸入錯誤")
+            ##將data.txt暫存資料清空
+            with open("data.txt","w") as file:
+                file.write("")
 
-        subprocess.Popen(["python", "search_sechdule.py"])  # 執行第二個程式
+    def display_schedule(schedule_path):
+        # 開啟新視窗顯示課表
+        schedule_window = Toplevel(Swindow)
+        schedule_window.title("個人課表")
+        schedule_window.geometry("600x400")
+
+        workbook = openpyxl.load_workbook(schedule_path)
+        worksheet = workbook.active
+
+        # 顯示課表內容
+        for row_idx, row in enumerate(worksheet.iter_rows(min_row=1, values_only=True)):
+            for col_idx, value in enumerate(row):
+                label = tk.Label(schedule_window, text=value if value else "", borderwidth=1, relief="solid", padx=5, pady=5)
+                label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
+
+        # 關閉按鈕
+        close_button = Button(schedule_window, text="關閉", command=schedule_window.destroy)
+        close_button.grid(row=row_idx + 1, column=0, columnspan=len(row), pady=10)
 
     confirm_button = tk.Button(content_frame, text="確認", command=number_search)
     confirm_button.grid(row=row_idx, column=len(headers), padx=2, pady=2, sticky="nsew")
