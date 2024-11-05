@@ -23,6 +23,17 @@ def on_configure(event):
 
 content_frame.bind("<Configure>", on_configure)
 
+# 綁定觸控面板/滑鼠滾輪滾動事件
+def on_mouse_wheel(event):
+    if event.delta > 0:  # 向上滾動
+        canvas.yview_scroll(-1, "units")
+    elif event.delta < 0:  # 向下滾動
+        canvas.yview_scroll(1, "units")
+
+canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows 和 Mac OS
+canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 滾輪向上
+canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 滾輪向下
+
 def open_new_window():
     # 創建新的 Toplevel 視窗
     new_window = Toplevel(Swindow)
@@ -75,20 +86,9 @@ for row_idx, row in enumerate(worksheet.iter_rows(min_row=2, max_row=53, min_col
         with open("data.txt","w") as file:
             file.write(number.get())
 
-        subprocess.Popen(["python", "number_search.py"])  # 執行第二個程式
+        subprocess.Popen(["python", "search_sechdule.py"])  # 執行第二個程式
 
     confirm_button = tk.Button(content_frame, text="確認", command=number_search)
     confirm_button.grid(row=row_idx, column=len(headers), padx=2, pady=2, sticky="nsew")
-
-# 綁定觸控面板/滑鼠滾輪滾動事件
-def on_mouse_wheel(event):
-    if event.delta > 0:  # 向上滾動
-        canvas.yview_scroll(-1, "units")
-    elif event.delta < 0:  # 向下滾動
-        canvas.yview_scroll(1, "units")
-
-canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows 和 Mac OS
-canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 滾輪向上
-canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 滾輪向下
 
 Swindow.mainloop()
