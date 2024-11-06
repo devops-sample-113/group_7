@@ -8,7 +8,7 @@ window.title("課程表顯示")
 window.geometry("1200x600")
 
 # Excel 檔案路徑
-file_path = "C:\\Users\\User\\OneDrive - 逢甲大學\\文件\\GitHub\\group_7\\database2.xlsx"
+file_path = '/Users/User/OneDrive - 逢甲大學/文件/GitHub/group_7/資料庫.xlsx'
 
 # 開啟 Excel 檔案
 workbook = openpyxl.load_workbook(file_path)
