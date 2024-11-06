@@ -80,6 +80,64 @@ def search(id):
             return schedule_path
     return None
 
+# Function to check if a course is in the student's schedule
+def is_course_in_schedule(schedule_path, course_code):
+    workbook = openpyxl.load_workbook(schedule_path)
+    worksheet = workbook.active
+
+    for row in worksheet.iter_rows(min_row=2, values_only=True):
+        if row[1] == course_code:  # Assuming course codes are in the second column of the schedule
+            return True
+    return False
+
+def map_course_time_to_schedule(day, time_range):
+    # Map day to row, e.g., "星期一" to row 2, "星期二" to row 3, etc.
+    day_mapping = {"星期一": 2, "星期二": 3, "星期三": 4, "星期四": 5, "星期五": 6}
+    start_time, end_time = time_range.split('-')
+    col_num = day_mapping[day]
+
+    # Map time to columns: assuming 14:00-16:00 corresponds to columns 8 and 9
+    if start_time == "08:00":
+        start_row, end_row = 2, 3  # For example: columns 8 and 9 for 08:00-10:00
+    elif start_time == "09:00":
+        start_row, end_row = 3, 4
+    elif start_time == "10:00":
+        start_row, end_row = 4, 5
+    elif start_time == "11:00":
+        start_row, end_row = 5, 6
+    elif start_time == "12:00":
+        start_row, end_row = 6, 7
+    elif start_time == "13:00":
+        start_row, end_row = 7, 8
+    elif start_time == "14:00":
+        start_row, end_row = 8, 9
+    elif start_time == "15:00":
+        start_row, end_row = 9, 10
+    # Add more mappings for different times if needed
+    else:
+        raise ValueError(f"Unrecognized time slot: {start_time}-{end_time}")
+
+    return col_num, start_row, end_row
+
+def add_course_to_schedule(schedule_path, course_name, col_num, start_row, end_row):
+    workbook = openpyxl.load_workbook(schedule_path)
+    worksheet = workbook.active
+    # Check for duplicate course name in the schedule
+    for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, values_only=True):
+        if course_name in row:
+            # If the course name is found, show an error message and exit
+            messagebox.showerror("重複課程", "已加選其他相同課程，加選失敗")
+            return
+    # Check for conflict: see if cells in the specified range already contain a course
+    if worksheet.cell(row=start_row, column=col_num).value or worksheet.cell(row=end_row, column=col_num).value:
+        # If either cell is occupied, show an error message and return
+        messagebox.showwarning("衝堂", "衝堂，加選失敗")
+        return
+    # Write the course name in specified columns
+    worksheet.cell(row=start_row, column=col_num).value = course_name
+    worksheet.cell(row=end_row, column=col_num).value = course_name
+    workbook.save(schedule_path)
+
 # 讀取 1-39 行，A-E 列的內容顯示在 Label 中，並在「加退選匡」列新增輸入框和確認按鈕
 for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
     for col_idx, value in enumerate(row):
@@ -91,7 +149,7 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
     entry.grid(row=row_idx, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
     
     # 確認按鈕功能
-    def number_search(entry=entry):
+    def number_search(entry=entry, course_code=row[0], course_name=row[0], course_time=row[2]):
         # 取得輸入資料
         student_id = entry.get()
         if not student_id:
@@ -104,6 +162,18 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
             if path:
                 # 若找到課表路徑，則開啟新視窗並顯示課表
                 #messagebox.showinfo("成功", f"找到課表：{path}")
+                if is_course_in_schedule(path, course_code):
+                    messagebox.showinfo("提醒", f"課程 {course_code} 已存在於課表中")
+                else:
+                    # Parse the course time to find the correct row and columns in the schedule
+                    day, time_range = course_time.split()
+                    col_num, start_row, end_row = map_course_time_to_schedule(day, time_range)
+                
+                    # Write the course name in the corresponding slots
+                    add_course_to_schedule(path, course_name, col_num, start_row, end_row)
+
+                    #messagebox.showinfo("訊息", f"課程 {course_code} 已成功加入至課表")
+                    #messagebox.showinfo("訊息", start_row)
                 display_schedule(path)
             else:
                 messagebox.showinfo("錯誤", "學號輸入錯誤")
@@ -118,7 +188,7 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
         worksheet = workbook.active
 
         # 顯示課表內容
-        for row_idx, row in enumerate(worksheet.iter_rows(min_row=1, values_only=True)):
+        for row_idx, row in enumerate(worksheet.iter_rows(min_row=1, max_row= 10, values_only=True)):
             for col_idx, value in enumerate(row):
                 label = tk.Label(schedule_window, text=value if value else "", borderwidth=1, relief="solid", padx=5, pady=5)
                 label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)

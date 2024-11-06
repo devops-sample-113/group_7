@@ -80,6 +80,16 @@ def search(id):
             return schedule_path
     return None
 
+# Function to check if a course is in the student's schedule
+def is_course_in_schedule(schedule_path, course_code):
+    workbook = openpyxl.load_workbook(schedule_path)
+    worksheet = workbook.active
+
+    for row in worksheet.iter_rows(min_row=2, values_only=True):
+        if row[1] == course_code:  # Assuming course codes are in the second column of the schedule
+            return True
+    return False
+    
 # 讀取 1-39 行，A-E 列的內容顯示在 Label 中，並在「加退選匡」列新增輸入框和確認按鈕
 for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
     for col_idx, value in enumerate(row):
@@ -91,33 +101,26 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
     entry.grid(row=row_idx, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
     
     # 確認按鈕功能
-    def number_search(entry=entry):
+    def number_search(entry=entry, course_code=row[0]):
         # 取得輸入資料
         student_id = entry.get()
         if not student_id:
             messagebox.showwarning("錯誤", "請輸入學號")  # 顯示提示框
         else:
-            # 儲存學號並清空輸入框
-            with open("data.txt", "w") as file:
-                file.write(student_id)
             entry.delete(0, END)  # 清空輸入框
-            ##獲取輸入資料(學號)
-            try:
-                with open("data.txt","r") as file:
-                    number=file.read()
-            except FileNotFoundError:
-                number="輸入錯誤"
-            
-            path = search(number)
-            messagebox.showinfo("正確", path)
+            path = search(student_id)
+            # Debugging: 打印學號和路徑來檢查正確性
+            #print(f"輸入的學號: {student_id}, 生成的課表路徑: {path}")
             if path:
                 # 若找到課表路徑，則開啟新視窗並顯示課表
+                #messagebox.showinfo("成功", f"找到課表：{path}")
+                if is_course_in_schedule(path, course_code):
+                    messagebox.showinfo("提醒", f"課程 {course_code} 已存在於課表中")
+                else:
+                    messagebox.showinfo("訊息", f"課程 {course_code} 不在課表中，可以加選")
                 display_schedule(path)
             else:
                 messagebox.showinfo("錯誤", "學號輸入錯誤")
-            ##將data.txt暫存資料清空
-            with open("data.txt","w") as file:
-                file.write("")
 
     def display_schedule(schedule_path):
         # 開啟新視窗顯示課表
@@ -129,7 +132,7 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
         worksheet = workbook.active
 
         # 顯示課表內容
-        for row_idx, row in enumerate(worksheet.iter_rows(min_row=1, values_only=True)):
+        for row_idx, row in enumerate(worksheet.iter_rows(min_row=1, max_row= 10, values_only=True)):
             for col_idx, value in enumerate(row):
                 label = tk.Label(schedule_window, text=value if value else "", borderwidth=1, relief="solid", padx=5, pady=5)
                 label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
