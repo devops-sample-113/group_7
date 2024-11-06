@@ -5,44 +5,42 @@ from tkinter import messagebox
 
 Swindow = Tk()
 Swindow.title("選課系統")
-Swindow.geometry("1500x1000")  # 設置主視窗的大小
+Swindow.geometry("1500x1000")
 
-# 設置 Canvas 和 Scrollbar，將整個內容放入 Canvas 中
+# 設置 Canvas 和 Scrollbar
 canvas = Canvas(Swindow, highlightthickness=0)
 scrollbar = Scrollbar(Swindow, orient="vertical", command=canvas.yview)
 scrollbar.pack(side="right", fill="y")
 canvas.configure(yscrollcommand=scrollbar.set)
 canvas.place(x=10, y=50, width=1480, height=700)
 
-# 新增一個框架用於承載內容，並在 Canvas 中滾動
+# 新增框架用於承載內容
 content_frame = Frame(canvas)
 canvas.create_window((0, 0), window=content_frame, anchor="nw")
 
+# 更新 Canvas 滾動範圍
 def on_configure(event):
-    # 更新 Canvas 滾動範圍
     canvas.configure(scrollregion=canvas.bbox("all"))
 
 content_frame.bind("<Configure>", on_configure)
 
-# 綁定觸控面板/滑鼠滾輪滾動事件
+# 綁定滾輪滾動事件
 def on_mouse_wheel(event):
     canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
 
 canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows 和 Mac OS
-canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 滾輪向上
-canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 滾輪向下
+canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 向上
+canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 向下
 
+# 開啟課表頁面
 def open_new_window():
-    # 創建新的 Toplevel 視窗
     new_window = Toplevel(Swindow)
     new_window.title("課表頁面")
-    new_window.geometry("400x300")  # 設置新視窗的大小
+    new_window.geometry("400x300")
 
-    # 在新視窗上添加一些元件
     Label(new_window, text="個人課表").pack(pady=20)
     Button(new_window, text="關閉", command=new_window.destroy).pack(pady=10)
 
-# 按鍵，點擊後開啟新頁面
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
 button_pop.place(x=10, y=10)
 
@@ -57,7 +55,7 @@ def adjust_column_widths(event=None):
 # 更新標題行和資料行的寬度
 canvas.bind("<Configure>", adjust_column_widths)
 
-# 標題行
+# 設置標題行
 headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
 
 # 開啟 Excel 文件
@@ -66,21 +64,21 @@ workbook = openpyxl.load_workbook(path)
 worksheet_courses = workbook["課程"]
 worksheet_students = workbook["學生"]
 
+# 查詢學號
 def search(id):
     for row in worksheet_students.iter_rows(min_row=2, values_only=True):
         name, id_, schedule_path = row[:3]
         if id_ == id:
-            schedule_path = f"個人課表/{id}.xlsx"
-            return schedule_path
+            return f"個人課表/{id}.xlsx"
     return None
 
-# Function to check if a course is in the student's schedule
+# 檢查課程是否在學生課表中
 def is_course_in_schedule(schedule_path, course_name):
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
 
     for row in worksheet.iter_rows(min_row=2, values_only=True):
-        if row[1] == course_name:  # Assuming course codes are in the second column of the schedule
+        if row[1] == course_name:
             return True
     return False
 
@@ -97,11 +95,12 @@ def map_course_time_to_schedule(day, time_range):
     }
     return col_num, *time_mapping.get(start_time, (None, None))
 
+# 取得課程學分
 def get_course_credit(course_name):
     for row in worksheet_courses.iter_rows(min_row=2, values_only=True):
-        if row[0] == course_name:  # Assuming course names are in the first column
-            return row[14]  # Credits are in the 15th column (index 14)
-    return None  # Return None if the course is not found
+        if row[0] == course_name:
+            return row[14]
+    return None
 
 # 計算總學分
 def calculate_total_credits(schedule_path):
@@ -119,21 +118,35 @@ def calculate_total_credits(schedule_path):
                     added_courses.add(cell)
     return total_credits
 
+# 獲取課程剩餘名額
+def get_course_remaining_spots(course_name):
+    for row in worksheet_courses.iter_rows(min_row=2, values_only=True):
+        if row[0] == course_name:
+            return row[13]  # 剩餘名額在第14欄（index 13）
+    return None
+
+# 更新課程剩餘名額
+def update_course_remaining_spots(course_name, new_remaining_spots):
+    for row in worksheet_courses.iter_rows(min_row=2, values_only=False):
+        if row[0].value == course_name:
+            row[13].value = new_remaining_spots  # 更新第14欄（index 13）的值
+            workbook.save(path)
+            break
+
+# 新增課程至課表
 def add_course_to_schedule(schedule_path, course_name, course_code, col_num, start_row, end_row):
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
-    # Check for duplicate course name in the schedule
+
     for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, values_only=True):
         if course_name in row:
-            # If the course name is found, show an error message and exit
             messagebox.showerror("重複課程", "已加選相同課程，加選失敗")
             return
-    # Check for conflict: see if cells in the specified range already contain a course
+
     if worksheet.cell(row=start_row, column=col_num).value or worksheet.cell(row=end_row, column=col_num).value:
-        # If either cell is occupied, show an error message and return
         messagebox.showwarning("衝堂", "衝堂，加選失敗")
         return
-    # Write the course name in specified columns
+
     worksheet.cell(row=start_row, column=col_num).value = course_name
     worksheet.cell(row=end_row, column=col_num).value = course_name
     workbook.save(schedule_path)
@@ -176,20 +189,30 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
             total_credits = calculate_total_credits(path)
             course_credit = get_course_credit(course_name)
 
-            if total_credits + course_credit > 25:
-                messagebox.showerror("超過學分上限", "加選失敗，超過學分上限！")
-                return
-
             if is_course_in_schedule(path, course_name):
                 messagebox.showinfo("提醒", f"課程 {course_name} 已存在於課表中")
+                return
+
+            if total_credits + course_credit > 25:
+                messagebox.showerror("超過學分上限", "加選失敗，超過學分上限！")
                 return
 
             day, time_range = course_time.split()
             col_num, start_row, end_row = map_course_time_to_schedule(day, time_range)
 
             if start_row and end_row:
-                add_course_to_schedule(path, course_name, course_code, col_num, start_row, end_row)
-                display_schedule(path)
+                # 檢查課程剩餘名額
+                remaining_spots = get_course_remaining_spots(course_name)
+                print(f"{remaining_spots}")
+                if remaining_spots is not None:
+                    if remaining_spots > 0:
+                        add_course_to_schedule(path, course_name, course_code, col_num, start_row, end_row)
+                        update_course_remaining_spots(course_name, remaining_spots - 1)  # 減少名額
+                        display_schedule(path)
+                    else:
+                        messagebox.showerror("加選失敗", "修課人數已滿，加選失敗")
+                else:
+                    messagebox.showerror("錯誤", "無法取得課程剩餘名額")
             else:
                 messagebox.showerror("錯誤", "無法對應課程時間")
 
@@ -198,5 +221,9 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
 
     confirm_button = tk.Button(content_frame, text="確認", command=number_search)
     confirm_button.grid(row=row_idx, column=len(headers), padx=2, pady=2, sticky="nsew")
+
+# 設定滾動區域範圍
+content_frame.update_idletasks()
+canvas.config(scrollregion=canvas.bbox("all"))
 
 Swindow.mainloop()
