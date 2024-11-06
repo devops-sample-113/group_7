@@ -189,12 +189,12 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
             total_credits = calculate_total_credits(path)
             course_credit = get_course_credit(course_name)
 
-            if total_credits + course_credit > 25:
-                messagebox.showerror("超過學分上限", "加選失敗，超過學分上限！")
-                return
-
             if is_course_in_schedule(path, course_name):
                 messagebox.showinfo("提醒", f"課程 {course_name} 已存在於課表中")
+                return
+
+            if total_credits + course_credit > 25:
+                messagebox.showerror("超過學分上限", "加選失敗，超過學分上限！")
                 return
 
             day, time_range = course_time.split()
@@ -203,6 +203,7 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
             if start_row and end_row:
                 # 檢查課程剩餘名額
                 remaining_spots = get_course_remaining_spots(course_name)
+                print(f"{remaining_spots}")
                 if remaining_spots is not None:
                     if remaining_spots > 0:
                         add_course_to_schedule(path, course_name, course_code, col_num, start_row, end_row)
