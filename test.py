@@ -67,7 +67,7 @@ canvas.bind("<Configure>", adjust_column_widths)
 headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
 
 # 開啟 Excel 文件
-path = '/Users/hayashitogi/Documents/GitHub/group_7/資料庫.xlsx'
+path = '資料庫.xlsx'
 workbook = openpyxl.load_workbook(path)
 worksheet_courses = workbook["課程"]
 worksheet_students = workbook["學生"]
@@ -76,17 +76,17 @@ def search(id):
     for row in worksheet_students.iter_rows(min_row=2, values_only=True):
         name, id_, schedule_path = row[:3]
         if id_ == id:
-            schedule_path = f"/Users/hayashitogi/Documents/GitHub/group_7/個人課表/{id}.xlsx"
+            schedule_path = f"個人課表/{id}.xlsx"
             return schedule_path
     return None
 
 # Function to check if a course is in the student's schedule
-def is_course_in_schedule(schedule_path, course_code):
+def is_course_in_schedule(schedule_path, course_name):
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
 
     for row in worksheet.iter_rows(min_row=2, values_only=True):
-        if row[1] == course_code:  # Assuming course codes are in the second column of the schedule
+        if row[1] == course_name:  # Assuming course codes are in the second column of the schedule
             return True
     return False
 
@@ -119,14 +119,40 @@ def map_course_time_to_schedule(day, time_range):
 
     return col_num, start_row, end_row
 
-def add_course_to_schedule(schedule_path, course_name, col_num, start_row, end_row):
+def get_course_credit(course_name):
+    for row in worksheet_courses.iter_rows(min_row=2, values_only=True):
+        if row[0] == course_name:  # Assuming course names are in the first column
+            return row[-1]  # Credits are in the 15th column (index 14)
+    return None  # Return None if the course is not found
+
+def calculate_total_credits(schedule_path):
+    total_credits = 0
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
+    added_courses = set()  # Track unique courses to avoid duplicates
+
+    for row in worksheet.iter_rows(min_row=2, values_only=True):
+        course_name = row[1]  # Assuming course names are in the second column; adjust if needed
+        if course_name and course_name not in added_courses:
+            course_credit = get_course_credit(course_name)
+            if course_credit is not None:
+                total_credits += course_credit
+                added_courses.add(course_name)
+            else:
+                print(f"Warning: Course code {course_name} not found in course database.")
+    print(f"Total Credits Calculated: {total_credits}")
+    return total_credits
+
+
+def add_course_to_schedule(schedule_path, course_name, course_code, col_num, start_row, end_row):
+    workbook = openpyxl.load_workbook(schedule_path)
+    worksheet = workbook.active
+
     # Check for duplicate course name in the schedule
     for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, values_only=True):
         if course_name in row:
             # If the course name is found, show an error message and exit
-            messagebox.showerror("重複課程", "已加選其他相同課程，加選失敗")
+            messagebox.showerror("重複課程", "已加選相同課程，加選失敗")
             return
     # Check for conflict: see if cells in the specified range already contain a course
     if worksheet.cell(row=start_row, column=col_num).value or worksheet.cell(row=end_row, column=col_num).value:
@@ -149,7 +175,7 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
     entry.grid(row=row_idx, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
     
     # 確認按鈕功能
-    def number_search(entry=entry, course_code=row[0], course_name=row[0], course_time=row[2]):
+    def number_search(entry=entry, course_name=row[0], course_code=row[1], course_time=row[2]):
         # 取得輸入資料
         student_id = entry.get()
         if not student_id:
@@ -160,21 +186,31 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
             # Debugging: 打印學號和路徑來檢查正確性
             #print(f"輸入的學號: {student_id}, 生成的課表路徑: {path}")
             if path:
-                # 若找到課表路徑，則開啟新視窗並顯示課表
-                #messagebox.showinfo("成功", f"找到課表：{path}")
-                if is_course_in_schedule(path, course_code):
-                    messagebox.showinfo("提醒", f"課程 {course_code} 已存在於課表中")
-                else:
-                    # Parse the course time to find the correct row and columns in the schedule
-                    day, time_range = course_time.split()
-                    col_num, start_row, end_row = map_course_time_to_schedule(day, time_range)
+                total_credits = calculate_total_credits(path)  # Calculate current total credits               
+                print(f"Current total credits for student {student_id}: {total_credits}")
+                # Get the course credit for the course the user wants to add
+                course_credit = get_course_credit(course_name)       
+                print(f"Credits for course {course_name} ({course_code}): {course_credit}")
+                print(f"now sum_credits{course_credit + total_credits}")
+                # Check if adding this course will exceed the 25-credit limit
+                if total_credits + course_credit > 25:
+                    messagebox.showerror("超過學分上限", "加選失敗，超過學分上限！")
                 
-                    # Write the course name in the corresponding slots
-                    add_course_to_schedule(path, course_name, col_num, start_row, end_row)
-
-                    #messagebox.showinfo("訊息", f"課程 {course_code} 已成功加入至課表")
-                    #messagebox.showinfo("訊息", start_row)
-                display_schedule(path)
+                else:
+                    # 若找到課表路徑，則開啟新視窗並顯示課表
+                    #messagebox.showinfo("成功", f"找到課表：{path}")
+                    if is_course_in_schedule(path, course_name):
+                        messagebox.showinfo("提醒", f"課程 {course_name} 已存在於課表中")
+                    else:
+                        # Parse the course time to find the correct row and columns in the schedule
+                        day, time_range = course_time.split()
+                        col_num, start_row, end_row = map_course_time_to_schedule(day, time_range)
+                    
+                        # Write the course name in the corresponding slots
+                        add_course_to_schedule(path, course_name, course_code, col_num, start_row, end_row)
+                        #messagebox.showinfo("訊息", f"課程 {course_code} 已成功加入至課表")
+                        #messagebox.showinfo("訊息", start_row)
+                        display_schedule(path)
             else:
                 messagebox.showinfo("錯誤", "學號輸入錯誤")
 
