@@ -43,7 +43,6 @@ button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
 button_pop.place(x=10, y=10)
 
 headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
-
 # 在 content_frame 中加入標題行
 for col_idx, header in enumerate(headers):
     label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray")
@@ -68,6 +67,12 @@ for row in worksheet_courses.iter_rows(min_row=2, values_only=True):
         "學分": credit
     }
 
+def number_search_add(entry=entry, course_code=row[1]):
+    number_search(entry, course_code, action="add")
+
+def number_search_drop(entry=entry, course_code=row[1]):
+    number_search(entry, course_code, action="drop")
+
 # 查詢學號
 def search(id):
     for row in worksheet_students.iter_rows(min_row=2, values_only=True):
@@ -75,31 +80,6 @@ def search(id):
         if id_ == id:
             return f"個人課表/{id}.xlsx"
     return None
-
-# 檢查課程是否在學生課表中
-def is_course_in_schedule(schedule_path, course_code):
-    workbook = openpyxl.load_workbook(schedule_path)
-    worksheet = workbook.active
-
-    # 遍歷課表的每一行和每一格，檢查是否存在課程代碼
-    for row in worksheet.iter_rows(min_row=2, values_only=True):
-        for cell in row:
-            if cell == course_code:
-                return True
-    return False
-
-# 將課程時間對應至課表
-def map_course_time_to_schedule(day, time_range):
-    day_mapping = {"星期一": 2, "星期二": 3, "星期三": 4, "星期四": 5, "星期五": 6}
-    start_time, _ = time_range.split('-')
-    col_num = day_mapping[day]
-
-    time_mapping = {
-        "08:00": (2, 3), "09:00": (3, 4), "10:00": (4, 5),
-        "11:00": (5, 6), "12:00": (6, 7), "13:00": (7, 8),
-        "14:00": (8, 9), "15:00": (9, 10)
-    }
-    return col_num, *time_mapping.get(start_time, (None, None))
 
 # 取得課程學分
 def get_course_credit(course_code):
@@ -121,19 +101,42 @@ def calculate_total_credits(schedule_path):
                     added_courses.add(cell)
     return total_credits
 
-# 獲取課程剩餘名額
-def get_course_remaining_spots(course_code):
-    return all_course.get(course_code, {}).get("目前可修課人數餘額")
+#檢查是否已含有相同名稱課程
+def samecourse_existing(schedule_path, course_code):
+    course_name = all_course[course_code]["課程名稱"]
+    workbook = openpyxl.load_workbook(schedule_path)
+    worksheet = workbook.active
+    for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, values_only=True):
+        for cell in row:
+            if cell and cell != course_code:  # 確保排除當前課程代碼
+                # 取得該課程代碼的名稱
+                existing_course_name = all_course.get(cell, {}).get('課程名稱')
+                if existing_course_name == course_name:
+                    return True
+    return False
 
-# 更新課程剩餘名額
-def update_course_remaining_spots(course_code, new_remaining_spots):
-    if course_code in all_course:
-        all_course[course_code]["目前可修課人數餘額"] = new_remaining_spots
-        for row in worksheet_courses.iter_rows(min_row=2, values_only=False):
-            if row[1].value == course_code:
-                row[13].value = new_remaining_spots
-                workbook.save(path)
-                break
+# 檢查課程是否在學生課表中
+def is_course_in_schedule(schedule_path, course_code):
+    workbook = openpyxl.load_workbook(schedule_path)
+    worksheet = workbook.active
+    for row in worksheet.iter_rows(min_row=2, values_only=True):
+        for cell in row:
+            if cell == course_code:
+                return True
+    return False
+
+# 將課程時間對應至課表
+def map_course_time_to_schedule(day, time_range):
+    day_mapping = {"星期一": 2, "星期二": 3, "星期三": 4, "星期四": 5, "星期五": 6}
+    start_time, _ = time_range.split('-')
+    col_num = day_mapping[day]
+
+    time_mapping = {
+        "08:00": (2, 3), "09:00": (3, 4), "10:00": (4, 5),
+        "11:00": (5, 6), "12:00": (6, 7), "13:00": (7, 8),
+        "14:00": (8, 9), "15:00": (9, 10)
+    }
+    return col_num, *time_mapping.get(start_time, (None, None))
 
 # 檢查課程是否衝堂
 def check_schedule_conflict(schedule_path, col_num, start_row, end_row):
@@ -145,14 +148,28 @@ def check_schedule_conflict(schedule_path, col_num, start_row, end_row):
         return True
     return False
 
+# 獲取課程剩餘名額
+def get_course_remaining_spots(course_code):
+    return all_course.get(course_code, {}).get("目前可修課人數餘額")
+
 # 新增課程至課表
 def add_course_to_schedule(schedule_path, course_code, col_num, start_row, end_row):
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
-
+    
     worksheet.cell(row=start_row, column=col_num).value = course_code
     worksheet.cell(row=end_row, column=col_num).value = course_code
     workbook.save(schedule_path)
+
+# 更新課程剩餘名額
+def update_course_remaining_spots(course_code, new_remaining_spots):
+    if course_code in all_course:
+        all_course[course_code]["目前可修課人數餘額"] = new_remaining_spots
+        for row in worksheet_courses.iter_rows(min_row=2, values_only=False):
+            if row[1].value == course_code:
+                row[13].value = new_remaining_spots
+                workbook.save(path)
+                break
 
 # 顯示課表
 def display_schedule(schedule_path):
@@ -176,7 +193,6 @@ def drop_course_from_schedule(schedule_path, course_code):
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
 
-    # 遍歷課表檢查是否有該課程
     found = False
     for row in worksheet.iter_rows(min_row=2, values_only=False):
         for cell in row:
@@ -186,7 +202,7 @@ def drop_course_from_schedule(schedule_path, course_code):
                 break
 
     if not found:
-        messagebox.showinfo("提示", f"課表中並沒有 {all_course[course_code]['課程名稱']}")
+        messagebox.showinfo("退選失敗", f"課表中並沒有 {all_course[course_code]['課程名稱']}")
         return False
 
     # 退選後檢查學分
@@ -196,7 +212,6 @@ def drop_course_from_schedule(schedule_path, course_code):
         messagebox.showerror("低於學分下限", "退選失敗，學分低於 9 學分！")
         return False
 
-    # 儲存課表
     workbook.save(schedule_path)
     messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']} 退選成功")
     return True
@@ -210,12 +225,6 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
     
     entry = tk.Entry(content_frame, width=15)
     entry.grid(row=row_idx + 1, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
-
-    def number_search_add(entry=entry, course_code=row[1]):
-        number_search(entry, course_code, action="add")
-    
-    def number_search_drop(entry=entry, course_code=row[1]):
-        number_search(entry, course_code, action="drop")
 
     button_add = Button(content_frame, text="加選", command=number_search_add)
     button_add.grid(row=row_idx + 1, column=len(headers), padx=2, pady=2, sticky="nsew")
@@ -235,8 +244,11 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
         if path:
             total_credits = calculate_total_credits(path)
             course_credit = get_course_credit(course_code)
-
             if action == "add":
+                if samecourse_existing(path, course_code):
+                    messagebox.showerror("重複課程", f"課表中已有相同課程：{all_course[course_code]['課程名稱']}，加選失敗")
+                    return
+    
                 if is_course_in_schedule(path, course_code):
                     messagebox.showinfo("提醒", f"{all_course[course_code]['課程名稱']} 已存在於課表中")
                     return
@@ -252,6 +264,7 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
                     if check_schedule_conflict(path, col_num, start_row, end_row):
                         messagebox.showwarning("衝堂", "衝堂，加選失敗")
                         return
+
                     remaining_spots = get_course_remaining_spots(course_code)
                     if remaining_spots is not None and remaining_spots > 0:
                         add_course_to_schedule(path, course_code, col_num, start_row, end_row)
