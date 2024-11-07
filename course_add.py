@@ -27,8 +27,8 @@ def on_mouse_wheel(event):
     canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
 
 canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows 和 Mac OS
-canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 向上
-canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 向下
+#canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 向上
+#canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 向下
 
 # 開啟課表頁面
 def open_new_window():
@@ -45,7 +45,7 @@ button_pop.place(x=10, y=10)
 headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
 # 在 content_frame 中加入標題行
 for col_idx, header in enumerate(headers):
-    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray")
+    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray", width=22)
     label.grid(row=0, column=col_idx, sticky="nsew", padx=2, pady=2)
 
 # 開啟 Excel 文件
@@ -57,21 +57,23 @@ worksheet_students = workbook["學生"]
 # 初始化 all_course 字典
 all_course = {}
 for row in worksheet_courses.iter_rows(min_row=2, values_only=True):
-    course_name, course_code, course_time, location, professor, remaining_spots, credit = row[:7]
+    course_name, course_code, course_time, location, professor, instructor_ID, ta_1, taID_1, ta_2, taID_2, syllabus, grading, enrollment_Limit, remaining_spots, credit = row[:15]
     all_course[course_code] = {
         "課程名稱": course_name,
         "開課時間": course_time,
         "上課地點": location,
         "授課教授": professor,
+        "授課教師證號": instructor_ID,
+        "課堂助教1": ta_1,
+        "助教證號1": taID_1,
+        "課堂助教2": ta_2,
+        "助教證號2": taID_2,
+        "課程大綱": syllabus,
+        "評分方式": grading,
+        "修課人數上限": enrollment_Limit,
         "目前可修課人數餘額": remaining_spots,
         "學分": credit
     }
-
-def number_search_add(entry=entry, course_code=row[1]):
-    number_search(entry, course_code, action="add")
-
-def number_search_drop(entry=entry, course_code=row[1]):
-    number_search(entry, course_code, action="drop")
 
 # 查詢學號
 def search(id):
@@ -222,17 +224,22 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
     for col_idx, value in enumerate(row):
         label = tk.Label(content_frame, text=value if value else "", borderwidth=1, relief="solid", padx=5, pady=5)
         label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
-    
+
     entry = tk.Entry(content_frame, width=15)
     entry.grid(row=row_idx + 1, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
+    def number_search_add(entry=entry, course_code=row[1]):
+        number_search(entry, course_code, action="add")
 
+    def number_search_drop(entry=entry, course_code=row[1]):
+        number_search(entry, course_code, action="drop")
+        
     button_add = Button(content_frame, text="加選", command=number_search_add)
     button_add.grid(row=row_idx + 1, column=len(headers), padx=2, pady=2, sticky="nsew")
 
     button_drop = Button(content_frame, text="退選", command=number_search_drop)
     button_drop.grid(row=row_idx + 1, column=len(headers) + 1, padx=2, pady=2, sticky="nsew")
 
-    def number_search(entry, course_code=row[1], action="add"):
+    def number_search(entry=entry, course_code=row[1], action="add"):
         student_id = entry.get()
         if not student_id:
             messagebox.showwarning("錯誤", "請輸入學號")

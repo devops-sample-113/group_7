@@ -27,8 +27,8 @@ def on_mouse_wheel(event):
     canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
 
 canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows 和 Mac OS
-canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 向上
-canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 向下
+#canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux 向上
+#canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux 向下
 
 # 開啟課表頁面
 def open_new_window():
@@ -66,12 +66,6 @@ for row in worksheet_courses.iter_rows(min_row=2, values_only=True):
         "目前可修課人數餘額": remaining_spots,
         "學分": credit
     }
-
-def number_search_add(entry=entry, course_code=row[1]):
-    number_search(entry, course_code, action="add")
-
-def number_search_drop(entry=entry, course_code=row[1]):
-    number_search(entry, course_code, action="drop")
 
 # 查詢學號
 def search(id):
@@ -225,7 +219,12 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
     
     entry = tk.Entry(content_frame, width=15)
     entry.grid(row=row_idx + 1, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
+    def number_search_add(entry=entry, course_code=row[1]):
+        number_search(entry, course_code, action="add")
 
+    def number_search_drop(entry=entry, course_code=row[1]):
+        number_search(entry, course_code, action="drop")
+        
     button_add = Button(content_frame, text="加選", command=number_search_add)
     button_add.grid(row=row_idx + 1, column=len(headers), padx=2, pady=2, sticky="nsew")
 
