@@ -232,7 +232,7 @@ for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53,
     button_drop = Button(content_frame, text="退選", command=number_search_drop)
     button_drop.grid(row=row_idx + 1, column=len(headers) + 1, padx=2, pady=2, sticky="nsew")
 
-    def number_search(entry=entry, course_code=row[1], action="add"):
+    def number_search(entry, course_code=row[1], action="add"):
         student_id = entry.get()
         if not student_id:
             messagebox.showwarning("錯誤", "請輸入學號")
