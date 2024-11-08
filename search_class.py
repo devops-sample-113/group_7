@@ -95,13 +95,16 @@ course_keyword = ""
 number_keyword = ""
 room_keyword = ""
 professor_keyword = ""
+week_keyword = ""
+week_options = ["", "一", "二", "三", "四", "五"]
 
 def update_keywords():
-    global professor_keyword, course_keyword, number_keyword, room_keyword  # 讓這兩個變數可以在函數外部使用並更新
+    global professor_keyword, course_keyword, number_keyword, room_keyword, week_keyword  # 讓這兩個變數可以在函數外部使用並更新
     course_keyword = course_entry.get().strip()
     number_keyword = number_entry.get().strip()
     room_keyword = room_entry.get().strip()
     professor_keyword = professor_entry.get().strip()  # 取得教授名稱關鍵字
+    week_keyword = week_var.get().strip()
     
     display_courses()
 
@@ -121,7 +124,14 @@ Label(Swindow, text="教授名稱：").place(x=510, y=100)
 professor_entry = Entry(Swindow, width=20)
 professor_entry.place(x=600, y=100)
 
-Button(Swindow, text="搜尋", command=update_keywords).place(x=780, y=25)
+Label(Swindow, text="星期：").place(x=780, y=10)
+week_var = tk.StringVar(Swindow)
+week_var.set(week_options[0])  # 設定初始值
+week_menu = tk.OptionMenu(Swindow, week_var, *week_options)
+week_menu.config(width=15)  # 設置下拉選單的寬度
+week_menu.place(x=870, y=10)
+
+Button(Swindow, text="搜尋", command=update_keywords).place(x=1050, y=25)
 
 
 
@@ -134,10 +144,11 @@ def display_courses():
         
         course_name = row[0]  # 假設課程名稱在第1列（索引0）
         number_name = str(row[1])
+        week_name = row[2]
         room_name = row[3]
         professor_name = row[4]  # 假設教授名稱在第5列（索引4）
         
-        if (course_keyword in course_name) and (number_keyword in number_name) and (room_keyword in room_name) and  (professor_keyword in professor_name):
+        if (course_keyword in course_name) and (number_keyword in number_name) and (room_keyword in room_name) and  (professor_keyword in professor_name) and  (week_keyword in week_name):
 
         # 顯示符合條件的課程
 
