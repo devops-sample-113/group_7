@@ -76,7 +76,7 @@ for col, header in enumerate(headers):
     label.grid(row=0, column=col, sticky="nsew", padx=2, pady=2)
 
 # 開啟 Excel 文件
-path = '/Users/User/OneDrive - 逢甲大學/文件/GitHub/group_7/資料庫.xlsx'
+path = '資料庫.xlsx'
 workbook = openpyxl.load_workbook(path)
 worksheet_courses = workbook["課程"]
 worksheet_students = workbook["學生"]
@@ -85,7 +85,7 @@ def search(id):
     for row in worksheet_students.iter_rows(min_row=2, values_only=True):
         name, id_, schedule_path = row[:3]
         if id_ == id:
-            schedule_path = f"/Users/User/OneDrive - 逢甲大學/文件/GitHub/group_7/個人課表/{id}.xlsx"
+            schedule_path = f"/個人課表/{id}.xlsx"
             return schedule_path
     return None
 
@@ -165,6 +165,9 @@ def display_courses():
     # 先清空目前顯示的內容
     for widget in data_frame.winfo_children():
         widget.destroy()
+
+    find = 0
+
     # 讀取 1-39 行，A-E 列的內容顯示在 Label 中，並在「加退選匡」列新增輸入框和確認按鈕
     for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
         
@@ -177,8 +180,8 @@ def display_courses():
         
         if (course_keyword in course_name) and (number_keyword in number_name) and (room_keyword in room_name) and  (professor_keyword in professor_name) and  (week_keyword in week_name) and ((start_hour <= time_keyword and time_keyword < end_hour) or time_keyword == 0):
 
+            find = 1
         # 顯示符合條件的課程
-
             for col_idx, value in enumerate(row):
                 label = tk.Label(data_frame, text=value if value is not None else "", borderwidth=1, relief="solid", padx=5, pady=5)
                 label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
@@ -237,6 +240,12 @@ def display_courses():
 
             confirm_button = tk.Button(data_frame, text="確認", command=number_search)
             confirm_button.grid(row=row_idx, column=len(headers), padx=2, pady=2, sticky="nsew")
+
+    if(find == 0):
+        # 顯示 "查無課程" 訊息
+        not_found_label = tk.Label(data_frame, text="查無課程", fg="red", font=("Arial", 14, "bold"))
+        not_found_label.grid(row=1, column=0, columnspan=len(headers), pady=10)  # 放在標題欄下方，跨越所有列
+        print("not find")
 
 display_courses()
 
