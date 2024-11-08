@@ -96,15 +96,22 @@ number_keyword = ""
 room_keyword = ""
 professor_keyword = ""
 week_keyword = ""
+time_keyword = 0
 week_options = ["", "一", "二", "三", "四", "五"]
+time_options = ["", "08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00"]
+time_number = [0, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
 def update_keywords():
-    global professor_keyword, course_keyword, number_keyword, room_keyword, week_keyword  # 讓這兩個變數可以在函數外部使用並更新
+    global professor_keyword, course_keyword, number_keyword, room_keyword, week_keyword, time_keyword  # 讓這兩個變數可以在函數外部使用並更新
     course_keyword = course_entry.get().strip()
     number_keyword = number_entry.get().strip()
     room_keyword = room_entry.get().strip()
     professor_keyword = professor_entry.get().strip()  # 取得教授名稱關鍵字
     week_keyword = week_var.get().strip()
+
+    selected_time = time_var.get().strip()
+    time_index = time_options.index(selected_time)
+    time_keyword = time_number[time_index]
     
     display_courses()
 
@@ -128,12 +135,31 @@ Label(Swindow, text="星期：").place(x=780, y=10)
 week_var = tk.StringVar(Swindow)
 week_var.set(week_options[0])  # 設定初始值
 week_menu = tk.OptionMenu(Swindow, week_var, *week_options)
-week_menu.config(width=15)  # 設置下拉選單的寬度
+week_menu.config(width=10)  # 設置下拉選單的寬度
 week_menu.place(x=870, y=10)
+
+Label(Swindow, text="時間：").place(x=780, y=40)
+time_var = tk.StringVar(Swindow)
+time_var.set(time_options[0])  # 設定初始值
+time_menu = tk.OptionMenu(Swindow, time_var, *time_options)
+time_menu.config(width=10)  # 設置下拉選單的寬度
+time_menu.place(x=870, y=40)
 
 Button(Swindow, text="搜尋", command=update_keywords).place(x=1050, y=25)
 
+def take_time(course_time):
+    # 提取星期幾（例如：星期二）和時間區間（例如：13:00-15:00）
+    _, time_range = course_time.split(" ")
 
+    # 提取開始和結束時間（例如 "13:00-15:00"）
+    start_time, end_time = time_range.split('-')
+
+    # 提取並將開始時間和結束時間轉換為整數
+    start_hour = int(start_time.split(":")[0])  # 提取 "13" 並轉為整數
+    end_hour = int(end_time.split(":")[0])      # 提取 "15" 並轉為整數
+
+    # 返回關鍵字詞及整數時間
+    return start_hour, end_hour
 
 def display_courses():
     # 先清空目前顯示的內容
@@ -145,10 +171,11 @@ def display_courses():
         course_name = row[0]  # 假設課程名稱在第1列（索引0）
         number_name = str(row[1])
         week_name = row[2]
+        start_hour, end_hour = take_time(row[2])
         room_name = row[3]
         professor_name = row[4]  # 假設教授名稱在第5列（索引4）
         
-        if (course_keyword in course_name) and (number_keyword in number_name) and (room_keyword in room_name) and  (professor_keyword in professor_name) and  (week_keyword in week_name):
+        if (course_keyword in course_name) and (number_keyword in number_name) and (room_keyword in room_name) and  (professor_keyword in professor_name) and  (week_keyword in week_name) and ((start_hour <= time_keyword and time_keyword < end_hour) or time_keyword == 0):
 
         # 顯示符合條件的課程
 
