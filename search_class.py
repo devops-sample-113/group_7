@@ -115,37 +115,37 @@ def update_keywords():
     
     display_courses()
 
-Label(Swindow, text="課程名稱：").place(x=510, y=10)
+Label(Swindow, text="課程名稱：").place(x=550, y=10)
 course_entry = Entry(Swindow, width=20)
-course_entry.place(x=600, y=10)
+course_entry.place(x=620, y=10)
 
-Label(Swindow, text="課程代碼：").place(x=510, y=40)
+Label(Swindow, text="課程代碼：").place(x=550, y=40)
 number_entry = Entry(Swindow, width=20)
-number_entry.place(x=600, y=40)
+number_entry.place(x=620, y=40)
 
-Label(Swindow, text="上課地點：").place(x=510, y=70)
+Label(Swindow, text="上課地點：").place(x=550, y=70)
 room_entry = Entry(Swindow, width=20)
-room_entry.place(x=600, y=70)
+room_entry.place(x=620, y=70)
 
-Label(Swindow, text="教授名稱：").place(x=510, y=100)
+Label(Swindow, text="教授名稱：").place(x=550, y=100)
 professor_entry = Entry(Swindow, width=20)
-professor_entry.place(x=600, y=100)
+professor_entry.place(x=620, y=100)
 
-Label(Swindow, text="星期：").place(x=780, y=10)
+Label(Swindow, text="星期：").place(x=780, y=15)
 week_var = tk.StringVar(Swindow)
 week_var.set(week_options[0])  # 設定初始值
 week_menu = tk.OptionMenu(Swindow, week_var, *week_options)
 week_menu.config(width=10)  # 設置下拉選單的寬度
-week_menu.place(x=870, y=10)
+week_menu.place(x=825, y=10)
 
-Label(Swindow, text="時間：").place(x=780, y=40)
+Label(Swindow, text="時間：").place(x=780, y=45)
 time_var = tk.StringVar(Swindow)
 time_var.set(time_options[0])  # 設定初始值
 time_menu = tk.OptionMenu(Swindow, time_var, *time_options)
 time_menu.config(width=10)  # 設置下拉選單的寬度
-time_menu.place(x=870, y=40)
+time_menu.place(x=825, y=40)
 
-Button(Swindow, text="搜尋", command=update_keywords).place(x=1050, y=25)
+Button(Swindow, text="搜尋", command=update_keywords).place(x=900, y=95)
 
 def take_time(course_time):
     # 提取星期幾（例如：星期二）和時間區間（例如：13:00-15:00）
@@ -167,7 +167,7 @@ def display_courses():
         widget.destroy()
 
     find = 0
-
+    
     # 讀取 1-39 行，A-E 列的內容顯示在 Label 中，並在「加退選匡」列新增輸入框和確認按鈕
     for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
         
@@ -183,11 +183,11 @@ def display_courses():
             find = 1
         # 顯示符合條件的課程
             for col_idx, value in enumerate(row):
-                label = tk.Label(data_frame, text=value if value is not None else "", borderwidth=1, relief="solid", padx=5, pady=5)
-                label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
+                label = tk.Label(data_frame, text=value if value is not None else "", borderwidth=1, relief="solid", width=27, padx=4, pady=5)
+                label.grid(row=row_idx, column=col_idx, sticky="ns", padx=1, pady=2)
             
             # 在「加退選匡」列添加輸入框和確認按鈕
-            entry = tk.Entry(data_frame, width=15)
+            entry = tk.Entry(data_frame, width=20)
             entry.grid(row=row_idx, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
             
             # 確認按鈕功能
