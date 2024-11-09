@@ -9,7 +9,7 @@ def show_search():
         file.write(number.get())
 
     search_window.destroy()  # 關閉當前視窗
-    subprocess.Popen(["python", "schedule.py"])  # 執行第二個程式
+    subprocess.Popen(["python", "schedule_show.py"])  # 執行第二個程式
 
 ##課表搜尋頁面視窗初始設定
 search_window=Tk()

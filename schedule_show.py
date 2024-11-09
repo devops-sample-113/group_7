@@ -11,12 +11,12 @@ def show_course_details(value):
     with open("course.txt","w") as file:
         file.write(str(value))
 
-    subprocess.Popen(["python", "detail.py"])  # 執行第二個程式
+    subprocess.Popen(["python", "course_detail.py"])  # 執行第二個程式
 
 ##返回課表搜尋頁面
 def return_search():
     Swindow.destroy()  # 關閉當前視窗
-    subprocess.Popen(["python", "search_schedule.py"])  # 執行第二個程式
+    subprocess.Popen(["python", "schedule_search.py"])  # 執行第二個程式
 
 ##課表頁面視窗初始設定
 Swindow=Tk()
@@ -115,7 +115,7 @@ label_data.place(x=135,y=395,anchor="center")
 
 ##將data.txt暫存資料清空
 with open("data.txt","w") as file:
-        file.write("")
+    file.write("")
 
 ##返回按鈕
 back=Button(Swindow,text="返回",anchor="s",command=return_search)
