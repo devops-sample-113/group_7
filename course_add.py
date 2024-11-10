@@ -192,10 +192,8 @@ def display_schedule(schedule_path):
 
 # 退選課程
 def drop_course_from_schedule(schedule_path, course_code):
-    # 讀取課表
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
-
     found = False
     for row in worksheet.iter_rows(min_row=2, values_only=False):
         for cell in row:
@@ -203,17 +201,19 @@ def drop_course_from_schedule(schedule_path, course_code):
                 cell.value = None  # 刪除該課程
                 found = True
                 break
-
     if not found:
         messagebox.showinfo("退選失敗", f"課表中並沒有 {all_course[course_code]['課程名稱']}")
         return False
-
     # 退選後檢查學分
     total_credits = calculate_total_credits(schedule_path)
     course_credit = get_course_credit(course_code)
     if total_credits - course_credit < 9:
         messagebox.showerror("低於學分下限", "退選失敗，學分低於 9 學分！")
         return False
+
+    remaining_spots = get_course_remaining_spots(course_code)
+    if remaining_spots is not None:
+        update_course_remaining_spots(course_code, remaining_spots + 1)
 
     workbook.save(schedule_path)
     messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']} 退選成功")
