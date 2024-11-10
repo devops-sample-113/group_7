@@ -12,7 +12,7 @@ canvas = Canvas(Swindow, highlightthickness=0)
 scrollbar = Scrollbar(Swindow, orient="vertical", command=canvas.yview)
 scrollbar.pack(side="right", fill="y")
 canvas.configure(yscrollcommand=scrollbar.set)
-canvas.place(x=10, y=130, width=1480, height=700)
+canvas.place(x=10, y=130, width=1480, height=650)
 
 # 新增框架用於承載內容
 content_frame = Frame(canvas)
