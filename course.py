@@ -362,7 +362,7 @@ def display_courses():
                 else:
                     messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']} 的餘額資訊不可用")
 
-            check_button = Button(content_frame, text="餘額確認", command=check_remaining_spots)
+            check_button = Button(data_frame, text="餘額確認", command=check_remaining_spots)
             check_button.grid(row=row_idx + 1, column=len(headers)-1, padx=2, pady=2, sticky="nsew")
 
             def number_search(entry=entry, course_code=row[1], action="add"):
