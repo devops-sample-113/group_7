@@ -1,33 +1,28 @@
-from tkinter import *
 import tkinter as tk
-import openpyxl
 
-##課表頁面視窗初始設定
-Swindow=Tk()
-Swindow.title("個人課表查詢")
-Swindow.geometry('500x500+390+75')
+root = tk.Tk()
+root.geometry("500x500")  # 設定初始視窗大小
 
-#創建空label以存入課表以顯示
-headers = ["A", "B", "C", "D", "E", "F"]
-for col, header in enumerate(headers):
-    label = tk.Label(Swindow, text=header, font=("Arial", 10, "bold"), borderwidth=1, relief="solid")
-    label.grid(row=0, column=col, sticky="nsew", padx=2, pady=2)
+# 建立一個可以滾動的框架
+canvas = tk.Canvas(root)
+scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
+frame = tk.Frame(canvas)
 
-##個人課表顯示
-#開啟excel
-path='C:\\Users\\User\\OneDrive - 逢甲大學\\文件\\group_7\\資料庫.xlsx'
-workbook=openpyxl.load_workbook(path)
-#選擇工作表
-worksheet=workbook.active
+# 在畫布上建立滾動區域
+canvas.create_window((0, 0), window=frame, anchor="nw")
+canvas.configure(yscrollcommand=scrollbar.set)
 
-# 讀取 1-10 行，A-F 列的內容並顯示在 Label 中
-for row_idx, row in enumerate(worksheet.iter_rows(min_row=1, max_row=10, min_col=1, max_col=6, values_only=True), start=1):
-    for col_idx, value in enumerate(row):
-        label = tk.Label(Swindow, text=value if value is not None else "", borderwidth=1, relief="solid", padx=5, pady=5)
-        label.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
+# 放一些內容以便測試滾動
+for i in range(50):
+    tk.Label(frame, text=f"Label {i}").pack()
 
-# 自動調整列寬
-for col in range(6):
-    Swindow.grid_columnconfigure(col, weight=1)
+# 設定滾動條
+scrollbar.pack(side="right", fill="y")
+canvas.pack(side="left", fill="both", expand=True)
 
-Swindow.mainloop()
+frame.update_idletasks()
+
+# 更新畫布的區域大小
+canvas.config(scrollregion=canvas.bbox("all"))
+
+root.mainloop()
