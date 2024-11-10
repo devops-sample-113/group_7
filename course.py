@@ -49,7 +49,7 @@ button_pop.place(x=10, y=10)
 headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
 # 在 content_frame 中加入標題行
 for col_idx, header in enumerate(headers):
-    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray", width=22)
+    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray", width=10)
     label.grid(row=0, column=col_idx, sticky="nsew", padx=2, pady=2)
 
 # 開啟 Excel 文件
@@ -208,7 +208,7 @@ def drop_course_from_schedule(schedule_path, course_code):
                 break
 
     if not found:
-        messagebox.showinfo("退選失敗", f"課表中並沒有 {all_course[course_code]['課程名稱']}")
+        messagebox.showinfo("退選失敗", f"課表中並沒有 {all_course[course_code]['課程名稱']}，退選失敗")
         return False
 
     # 退選後檢查學分
@@ -347,7 +347,7 @@ def display_courses():
                     course_credit = get_course_credit(course_code)
                     if action == "add":
                         if samecourse_existing(path, course_code):
-                            messagebox.showerror("重複課程", f"課表中已有相同課程：{all_course[course_code]['課程名稱']}，加選失敗")
+                            messagebox.showerror("重複課程", f"已加選相同課程：{all_course[course_code]['課程名稱']}，加選失敗")
                             return
             
                         if is_course_in_schedule(path, course_code):
@@ -373,7 +373,7 @@ def display_courses():
                                 display_schedule(path)
                                 messagebox.showinfo("成功", f"{all_course[course_code]['課程名稱']} 加選成功")
                             else:
-                                messagebox.showerror("加選失敗", "該課程無剩餘名額")
+                                messagebox.showerror("加選失敗", "修課人數已滿，加選失敗")
                     elif action == "drop":
                         if not drop_course_from_schedule(path, course_code):
                             return
