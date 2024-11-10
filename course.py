@@ -12,11 +12,15 @@ canvas = Canvas(Swindow, highlightthickness=0)
 scrollbar = Scrollbar(Swindow, orient="vertical", command=canvas.yview)
 scrollbar.pack(side="right", fill="y")
 canvas.configure(yscrollcommand=scrollbar.set)
-canvas.place(x=10, y=50, width=1480, height=700)
+canvas.place(x=10, y=130, width=1480, height=700)
 
 # 新增框架用於承載內容
 content_frame = Frame(canvas)
 canvas.create_window((0, 0), window=content_frame, anchor="nw")
+
+# 用於顯示課程資料的子框架    ##查
+data_frame = Frame(content_frame)
+data_frame.grid(row=1, column=0, columnspan=6, sticky="nsew")
 
 def on_configure(event):
     canvas.configure(scrollregion=canvas.bbox("all"))
@@ -218,74 +222,172 @@ def drop_course_from_schedule(schedule_path, course_code):
     messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']} 退選成功")
     return True
 
+###########################################搜尋
 
-# 讀取並顯示課程列表
-for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
-    for col_idx, value in enumerate(row):
-        label = tk.Label(content_frame, text=value if value else "", borderwidth=1, relief="solid", padx=5, pady=5)
-        label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
+course_keyword = ""
+number_keyword = ""
+room_keyword = ""
+professor_keyword = ""
+week_keyword = ""
+time_keyword = 0
+week_options = ["", "一", "二", "三", "四", "五"]
+time_options = ["", "08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00"]
+time_number = [0, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
-    entry = tk.Entry(content_frame, width=15)
-    entry.grid(row=row_idx + 1, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
-    def number_search_add(entry=entry, course_code=row[1]):
-        number_search(entry, course_code, action="add")
+def update_keywords():
+    global professor_keyword, course_keyword, number_keyword, room_keyword, week_keyword, time_keyword  # 讓這兩個變數可以在函數外部使用並更新
+    course_keyword = course_entry.get().strip()
+    number_keyword = number_entry.get().strip()
+    room_keyword = room_entry.get().strip()
+    professor_keyword = professor_entry.get().strip()  # 取得教授名稱關鍵字
+    week_keyword = week_var.get().strip()
 
-    def number_search_drop(entry=entry, course_code=row[1]):
-        number_search(entry, course_code, action="drop")
-        
-    button_add = Button(content_frame, text="加選", command=number_search_add)
-    button_add.grid(row=row_idx + 1, column=len(headers), padx=2, pady=2, sticky="nsew")
-
-    button_drop = Button(content_frame, text="退選", command=number_search_drop)
-    button_drop.grid(row=row_idx + 1, column=len(headers) + 1, padx=2, pady=2, sticky="nsew")
-
-    def number_search(entry=entry, course_code=row[1], action="add"):
-        student_id = entry.get()
-        if not student_id:
-            messagebox.showwarning("錯誤", "請輸入學號")
-            return
-
-        entry.delete(0, END)
-        path = search(student_id)
-
-        if path:
-            total_credits = calculate_total_credits(path)
-            course_credit = get_course_credit(course_code)
-            if action == "add":
-                if samecourse_existing(path, course_code):
-                    messagebox.showerror("重複課程", f"課表中已有相同課程：{all_course[course_code]['課程名稱']}，加選失敗")
-                    return
+    selected_time = time_var.get().strip()
+    time_index = time_options.index(selected_time)
+    time_keyword = time_number[time_index]
     
-                if is_course_in_schedule(path, course_code):
-                    messagebox.showinfo("提醒", f"{all_course[course_code]['課程名稱']} 已存在於課表中")
+    display_courses()
+
+Label(Swindow, text="課程名稱：").place(x=550, y=10)
+course_entry = Entry(Swindow, width=20)
+course_entry.place(x=620, y=10)
+
+Label(Swindow, text="課程代碼：").place(x=550, y=40)
+number_entry = Entry(Swindow, width=20)
+number_entry.place(x=620, y=40)
+
+Label(Swindow, text="上課地點：").place(x=550, y=70)
+room_entry = Entry(Swindow, width=20)
+room_entry.place(x=620, y=70)
+
+Label(Swindow, text="教授名稱：").place(x=550, y=100)
+professor_entry = Entry(Swindow, width=20)
+professor_entry.place(x=620, y=100)
+
+Label(Swindow, text="星期：").place(x=780, y=15)
+week_var = tk.StringVar(Swindow)
+week_var.set(week_options[0])  # 設定初始值
+week_menu = tk.OptionMenu(Swindow, week_var, *week_options)
+week_menu.config(width=10)  # 設置下拉選單的寬度
+week_menu.place(x=825, y=10)
+
+Label(Swindow, text="時間：").place(x=780, y=45)
+time_var = tk.StringVar(Swindow)
+time_var.set(time_options[0])  # 設定初始值
+time_menu = tk.OptionMenu(Swindow, time_var, *time_options)
+time_menu.config(width=10)  # 設置下拉選單的寬度
+time_menu.place(x=825, y=40)
+
+Button(Swindow, text="搜尋", command=update_keywords).place(x=900, y=95)
+
+def take_time(course_time):
+    # 提取星期幾（例如：星期二）和時間區間（例如：13:00-15:00）
+    _, time_range = course_time.split(" ")
+
+    # 提取開始和結束時間（例如 "13:00-15:00"）
+    start_time, end_time = time_range.split('-')
+
+    # 提取並將開始時間和結束時間轉換為整數
+    start_hour = int(start_time.split(":")[0])  # 提取 "13" 並轉為整數
+    end_hour = int(end_time.split(":")[0])      # 提取 "15" 並轉為整數
+
+    # 返回關鍵字詞及整數時間
+    return start_hour, end_hour
+
+def display_courses():
+    # 先清空目前顯示的內容
+    for widget in data_frame.winfo_children():
+        widget.destroy()
+
+    find = 0
+        
+    # 讀取並顯示課程列表
+    for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
+
+        course_name = row[0]  # 假設課程名稱在第1列（索引0）
+        number_name = str(row[1])
+        week_name = row[2]
+        start_hour, end_hour = take_time(row[2])
+        room_name = row[3]
+        professor_name = row[4]  # 假設教授名稱在第5列（索引4）
+
+        if (course_keyword in course_name) and (number_keyword in number_name) and (room_keyword in room_name) and  (professor_keyword in professor_name) and  (week_keyword in week_name) and ((start_hour <= time_keyword and time_keyword < end_hour) or time_keyword == 0):
+
+            find = 1
+
+            for col_idx, value in enumerate(row):
+                label = tk.Label(data_frame, text=value if value else "", borderwidth=1, relief="solid", width=25, padx=4, pady=5)
+                label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
+
+            entry = tk.Entry(data_frame, width=15)
+            entry.grid(row=row_idx + 1, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
+            def number_search_add(entry=entry, course_code=row[1]):
+                number_search(entry, course_code, action="add")
+
+            def number_search_drop(entry=entry, course_code=row[1]):
+                number_search(entry, course_code, action="drop")
+                
+            button_add = Button(data_frame, text="加選", command=number_search_add)
+            button_add.grid(row=row_idx + 1, column=len(headers), padx=2, pady=2, sticky="nsew")
+
+            button_drop = Button(data_frame, text="退選", command=number_search_drop)
+            button_drop.grid(row=row_idx + 1, column=len(headers) + 1, padx=2, pady=2, sticky="nsew")
+
+            def number_search(entry=entry, course_code=row[1], action="add"):
+                student_id = entry.get()
+                if not student_id:
+                    messagebox.showwarning("錯誤", "請輸入學號")
                     return
 
-                if total_credits + course_credit > 25:
-                    messagebox.showerror("超過學分上限", "加選失敗，超過學分上限！")
-                    return
+                entry.delete(0, END)
+                path = search(student_id)
 
-                day, time_range = all_course[course_code]["開課時間"].split()
-                col_num, start_row, end_row = map_course_time_to_schedule(day, time_range)
+                if path:
+                    total_credits = calculate_total_credits(path)
+                    course_credit = get_course_credit(course_code)
+                    if action == "add":
+                        if samecourse_existing(path, course_code):
+                            messagebox.showerror("重複課程", f"課表中已有相同課程：{all_course[course_code]['課程名稱']}，加選失敗")
+                            return
+            
+                        if is_course_in_schedule(path, course_code):
+                            messagebox.showinfo("提醒", f"{all_course[course_code]['課程名稱']} 已存在於課表中")
+                            return
 
-                if start_row and end_row:
-                    if check_schedule_conflict(path, col_num, start_row, end_row):
-                        messagebox.showwarning("衝堂", "衝堂，加選失敗")
-                        return
+                        if total_credits + course_credit > 25:
+                            messagebox.showerror("超過學分上限", "加選失敗，超過學分上限！")
+                            return
 
-                    remaining_spots = get_course_remaining_spots(course_code)
-                    if remaining_spots is not None and remaining_spots > 0:
-                        add_course_to_schedule(path, course_code, col_num, start_row, end_row)
-                        update_course_remaining_spots(course_code, remaining_spots - 1)
+                        day, time_range = all_course[course_code]["開課時間"].split()
+                        col_num, start_row, end_row = map_course_time_to_schedule(day, time_range)
+
+                        if start_row and end_row:
+                            if check_schedule_conflict(path, col_num, start_row, end_row):
+                                messagebox.showwarning("衝堂", "衝堂，加選失敗")
+                                return
+
+                            remaining_spots = get_course_remaining_spots(course_code)
+                            if remaining_spots is not None and remaining_spots > 0:
+                                add_course_to_schedule(path, course_code, col_num, start_row, end_row)
+                                update_course_remaining_spots(course_code, remaining_spots - 1)
+                                display_schedule(path)
+                                messagebox.showinfo("成功", f"{all_course[course_code]['課程名稱']} 加選成功")
+                            else:
+                                messagebox.showerror("加選失敗", "該課程無剩餘名額")
+                    elif action == "drop":
+                        if not drop_course_from_schedule(path, course_code):
+                            return
                         display_schedule(path)
-                        messagebox.showinfo("成功", f"{all_course[course_code]['課程名稱']} 加選成功")
-                    else:
-                        messagebox.showerror("加選失敗", "該課程無剩餘名額")
-            elif action == "drop":
-                if not drop_course_from_schedule(path, course_code):
-                    return
-                display_schedule(path)
 
-        else:
-            messagebox.showerror("錯誤", "找不到學號對應的課表")
+                else:
+                    messagebox.showerror("錯誤", "找不到學號對應的課表")
+
+    if(find == 0):
+        # 顯示 "查無課程" 訊息
+        not_found_label = tk.Label(data_frame, text="查無課程", fg="red", font=("Arial", 14, "bold"))
+        not_found_label.grid(row=1, column=0, columnspan=len(headers), pady=10)  # 放在標題欄下方，跨越所有列
+        print("not find")
+
+display_courses()
 
 Swindow.mainloop()
