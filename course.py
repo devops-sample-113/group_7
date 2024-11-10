@@ -220,7 +220,7 @@ def drop_course_from_schedule(schedule_path, course_code):
                 found = True
                 break
     if not found:
-        messagebox.showinfo("退選失敗", f"課表中並沒有 {all_course[course_code]['課程名稱']}，退選失敗")
+        messagebox.showinfo("退選失敗", f"課表中並沒有{all_course[course_code]['課程名稱']}{course_code}，退選失敗")
         return False
     total_credits = calculate_total_credits(schedule_path)
     course_credit = get_course_credit(course_code)
@@ -231,7 +231,7 @@ def drop_course_from_schedule(schedule_path, course_code):
     if remaining_spots is not None:
         update_course_remaining_spots(course_code, remaining_spots + 1)       
     workbook.save(schedule_path)
-    messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']} 退選成功")
+    messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']}{course_code}，退選成功")
     return True
 
 ###########################################搜尋
@@ -362,9 +362,9 @@ def display_courses():
             def check_remaining_spots(course_code=row[1]):
                 remaining_spots = get_course_remaining_spots(course_code)
                 if remaining_spots is not None:
-                    messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']} 的剩餘名額為：{remaining_spots}")
+                    messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']}{course_code}的剩餘名額為：{remaining_spots}")
                 else:
-                    messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']} 的餘額資訊不可用")
+                    messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']}{course_code}的餘額資訊不可用")
 
             check_button = Button(content_frame, text="餘額確認", command=check_remaining_spots)
             check_button.grid(row=row_idx + 1, column=len(headers)-1, padx=2, pady=2, sticky="nsew")
@@ -383,11 +383,11 @@ def display_courses():
                     course_credit = get_course_credit(course_code)
                     if action == "add":
                         if samecourse_existing(path, course_code):
-                            messagebox.showerror("重複課程", f"已加選相同課程：{all_course[course_code]['課程名稱']}，加選失敗")
+                            messagebox.showerror("重複課程", f"已加選相同課程：{all_course[course_code]['課程名稱']}{course_code}，加選失敗")
                             return
             
                         if is_course_in_schedule(path, course_code):
-                            messagebox.showinfo("提醒", f"{all_course[course_code]['課程名稱']} 已存在於課表中")
+                            messagebox.showinfo("提醒", f"{all_course[course_code]['課程名稱']}{course_code}已存在於課表中")
                             return
 
                         if total_credits + course_credit > 25:
@@ -406,8 +406,8 @@ def display_courses():
                             if remaining_spots is not None and remaining_spots > 0:
                                 add_course_to_schedule(path, course_code, col_num, start_row, end_row)
                                 update_course_remaining_spots(course_code, remaining_spots - 1)
-                                display_schedule(path)
-                                messagebox.showinfo("成功", f"{all_course[course_code]['課程名稱']} 加選成功")
+                                #display_schedule(path)
+                                messagebox.showinfo("成功", f"{all_course[course_code]['課程名稱']}{course_code}，加選成功")
                             else:
                                 messagebox.showerror("加選失敗", "修課人數已滿，加選失敗")
                     elif action == "drop":
