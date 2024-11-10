@@ -2,8 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import tkinter as tk
 import pandas
-import openpyxl
-import subprocess
+import math
 
 def add_entry(label_text, initial_value, parent):
     tk.Label(parent, text=label_text).pack(anchor="w")
@@ -19,31 +18,23 @@ def save_changes():
         credits = entry_credits.get()
         if credits not in ["1", "2", "3"]:
             messagebox.showerror("學分錯誤", "學分只能為1、2或3，且不可為空")
-            return  # 避免繼續執行，直接返回
-
+            return
         if not entry_course_name.get().strip():
             messagebox.showerror("課程名稱錯誤", "課程名稱不可為空")
             return
-
         if not entry_location.get().strip():
             messagebox.showerror("上課地點錯誤", "上課地點不可為空")
             return
-
         if not entry_outline.get().strip():
             messagebox.showerror("課程大綱錯誤", "課程大綱不可為空")
             return
-
         if not entry_evaluation.get().strip():
             messagebox.showerror("評分方式錯誤", "評分方式不可為空")
             return
-
-        # 檢查「修課人數上限」是否為正整數
         max_students = entry_max_students.get().strip()
         if not max_students.isdigit() or int(max_students) <= 0:
             messagebox.showerror("修課人數上限錯誤", "修課人數上限需為正整數，且不可為空")
             return
-
-        # 檢查「目前可修課人數餘額」是否為不為負的整數，且不能超過修課人數上限
         available_spots = entry_available_spots.get().strip()
         if not available_spots.isdigit() or int(available_spots) < 0:
             messagebox.showerror("目前可修課人數餘額錯誤", "目前可修課人數餘額需為非負整數，且不可為空")
@@ -55,8 +46,18 @@ def save_changes():
         # 更新 all_course 字典中可修改的屬性
         all_course[code]['課程名稱'] = entry_course_name.get()
         all_course[code]['上課地點'] = entry_location.get()
-        all_course[code]['課堂助教1'] = entry_ta1.get()
-        all_course[code]['課堂助教2'] = entry_ta2.get()
+        ta1_value = entry_ta1.get()
+        ta2_value = entry_ta2.get()
+        if ta1_value: all_course[code]['課堂助教1'] = ta1_value
+        else:
+            print("TA1:", repr(entry_ta1.get()))
+            all_course[code].pop('課堂助教1', None)
+            all_course[code].pop('助教證號1', None)
+        if ta2_value: all_course[code]['課堂助教2'] = ta2_value
+        else:
+            print("TA2:", repr(entry_ta2.get()))
+            all_course[code].pop('課堂助教2', None)
+            all_course[code].pop('助教證號2', None)
         all_course[code]['課程大綱'] = entry_outline.get()
         all_course[code]['評分方式'] = entry_evaluation.get()
         all_course[code]['修課人數上限'] = entry_max_students.get()
