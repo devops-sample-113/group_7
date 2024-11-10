@@ -61,7 +61,7 @@ def open_new_window():
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
 button_pop.place(x=10, y=10)
 
-headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框", "餘額確認"]
+headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框", "餘額確認", "確認目前餘額"]
 # 在 content_frame 中加入標題行
 for col_idx, header in enumerate(headers):
     label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray")
@@ -210,10 +210,8 @@ def display_schedule(schedule_path):
 
 # 退選課程
 def drop_course_from_schedule(schedule_path, course_code):
-    # 讀取課表
     workbook = openpyxl.load_workbook(schedule_path)
     worksheet = workbook.active
-
     found = False
     for row in worksheet.iter_rows(min_row=2, values_only=False):
         for cell in row:
@@ -221,22 +219,17 @@ def drop_course_from_schedule(schedule_path, course_code):
                 cell.value = None  # 刪除該課程
                 found = True
                 break
-
     if not found:
         messagebox.showinfo("退選失敗", f"課表中並沒有 {all_course[course_code]['課程名稱']}，退選失敗")
         return False
-
-    # 退選後檢查學分
     total_credits = calculate_total_credits(schedule_path)
     course_credit = get_course_credit(course_code)
     if total_credits - course_credit < 9:
         messagebox.showerror("低於學分下限", "退選失敗，學分低於 9 學分！")
-        return False
-    
+        return False   
     remaining_spots = get_course_remaining_spots(course_code)
     if remaining_spots is not None:
-        update_course_remaining_spots(course_code, remaining_spots + 1)
-        
+        update_course_remaining_spots(course_code, remaining_spots + 1)       
     workbook.save(schedule_path)
     messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']} 退選成功")
     return True
@@ -343,7 +336,7 @@ def display_courses():
                 button = tk.Button(data_frame, text=value if value else "", borderwidth=1, relief="solid", width=25, padx=4, pady=5, command=lambda code=code: show_course_details(code))
                 button.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
 
-            action_frame = Frame(content_frame)
+            action_frame = Frame(data_frame)
             action_frame.grid(row=row_idx + 1, column=len(headers) - 2, padx=2, pady=2, sticky="nsew")
 
             entry = tk.Entry(action_frame, width=10)
