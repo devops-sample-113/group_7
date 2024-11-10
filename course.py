@@ -217,7 +217,11 @@ def drop_course_from_schedule(schedule_path, course_code):
     if total_credits - course_credit < 9:
         messagebox.showerror("低於學分下限", "退選失敗，學分低於 9 學分！")
         return False
-
+    
+    remaining_spots = get_course_remaining_spots(course_code)
+    if remaining_spots is not None:
+        update_course_remaining_spots(course_code, remaining_spots + 1)
+        
     workbook.save(schedule_path)
     messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']} 退選成功")
     return True
