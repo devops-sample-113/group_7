@@ -42,10 +42,10 @@ def open_new_window():
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
 button_pop.place(x=10, y=10)
 
-headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
+headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框", "餘額確認"]
 # 在 content_frame 中加入標題行
 for col_idx, header in enumerate(headers):
-    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray", width=22)
+    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray")
     label.grid(row=0, column=col_idx, sticky="nsew", padx=2, pady=2)
 
 # 開啟 Excel 文件
@@ -219,26 +219,41 @@ def drop_course_from_schedule(schedule_path, course_code):
     messagebox.showinfo("退選成功", f"{all_course[course_code]['課程名稱']} 退選成功")
     return True
 
-
 # 讀取並顯示課程列表
 for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
     for col_idx, value in enumerate(row):
         label = tk.Label(content_frame, text=value if value else "", borderwidth=1, relief="solid", padx=5, pady=5)
         label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
 
-    entry = tk.Entry(content_frame, width=15)
-    entry.grid(row=row_idx + 1, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
+    action_frame = Frame(content_frame)
+    action_frame.grid(row=row_idx + 1, column=len(headers) - 2, padx=2, pady=2, sticky="nsew")
+
+    entry = tk.Entry(action_frame, width=10)
+    entry.pack(side="left", padx=2, pady=2)
+
     def number_search_add(entry=entry, course_code=row[1]):
         number_search(entry, course_code, action="add")
 
     def number_search_drop(entry=entry, course_code=row[1]):
         number_search(entry, course_code, action="drop")
-        
-    button_add = Button(content_frame, text="加選", command=number_search_add)
-    button_add.grid(row=row_idx + 1, column=len(headers), padx=2, pady=2, sticky="nsew")
 
-    button_drop = Button(content_frame, text="退選", command=number_search_drop)
-    button_drop.grid(row=row_idx + 1, column=len(headers) + 1, padx=2, pady=2, sticky="nsew")
+    button_add = Button(action_frame, text="加選", command=number_search_add)
+    button_add.pack(side="left", padx=2, pady=2)
+
+    button_drop = Button(action_frame, text="退選", command=number_search_drop)
+    button_drop.pack(side="left", padx=2, pady=2)
+
+    # 新增餘額確認按鈕
+    def check_remaining_spots(course_code=row[1]):
+        remaining_spots = get_course_remaining_spots(course_code)
+        if remaining_spots is not None:
+            messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']} 的剩餘名額為：{remaining_spots}")
+        else:
+            messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']} 的餘額資訊不可用")
+
+    check_button = Button(content_frame, text="餘額確認", command=check_remaining_spots)
+    check_button.grid(row=row_idx + 1, column=len(headers)-1, padx=2, pady=2, sticky="nsew")
+
 
     def number_search(entry=entry, course_code=row[1], action="add"):
         student_id = entry.get()
