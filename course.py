@@ -1,6 +1,7 @@
 from tkinter import *
 import tkinter as tk
 import openpyxl
+import subprocess
 from tkinter import messagebox
 
 Swindow = Tk()
@@ -36,17 +37,12 @@ canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows 和 Mac OS
 
 # 開啟課表頁面
 def open_new_window():
-    new_window = Toplevel(Swindow)
-    new_window.title("課表頁面")
-    new_window.geometry("400x300")
-
-    Label(new_window, text="個人課表").pack(pady=20)
-    Button(new_window, text="關閉", command=new_window.destroy).pack(pady=10)
+    subprocess.Popen(["python", "schedule_search.py"])  # 執行第二個程式
 
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
 button_pop.place(x=10, y=10)
 
-headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選匡"]
+headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框"]
 # 在 content_frame 中加入標題行
 for col_idx, header in enumerate(headers):
     label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray", width=10)
