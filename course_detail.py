@@ -1,7 +1,9 @@
 from tkinter import *
 import tkinter as tk
 import pandas
+from tkinter import messagebox
 import subprocess
+import re
 
 ##前往編輯課程資訊
 def edit_course(code):
@@ -9,18 +11,18 @@ def edit_course(code):
     teacher=number.get()
     # 清空輸入框
     number.delete(0, END)
+
+    if not re.match(r"^T\d{7}$", teacher):
+        # 格式不符合，顯示錯誤訊息
+        messagebox.showerror("輸入錯誤", "教師證號格式錯誤")
+        return
     
     if all_course[code]['授課教師證號']==teacher:
         with open("course.txt","w") as file:
             file.write(str(code))
         subprocess.Popen(["python", "course_edit.py"])
     else:
-        error_window=Tk()
-        error_window.title("存取失敗")
-        error_window.geometry('300x150')
-
-        label_error = tk.Label(error_window, text="輸入證號與授課教師證號不符", fg="red",font=20)
-        label_error.place(x=150,y=75,anchor="center")
+        messagebox.showerror("驗證錯誤", "輸入證號與授課教師證號不符")
         
 def show_line(string):
     label = tk.Label(detail_window, text=string, font=("Arial", 10), anchor="w")

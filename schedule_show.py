@@ -42,8 +42,10 @@ def search(id):
         worksheet=workbook["學生"]
     elif number[0]=="A":
         worksheet=workbook["助教"]
-    else:
+    elif number[0]=="T":
         worksheet=workbook["教授"]
+    else:
+        return None
 
     for row in worksheet.iter_rows(min_row=2, values_only=True):  # 從第2行開始（假設第1行是標題）
         name, id_, schedule_path = row[:3]  # 解包每一行的資料
@@ -51,13 +53,11 @@ def search(id):
         # 如果學號符合，回傳個人課表路徑
         if id_ == id:
             return schedule_path
-        
-    return f"學號輸入錯誤"
 
 #查詢課表
 path=search(number)
 
-if "學號輸入錯誤" not in path and "無效的學號" not in path:
+if path:
     workbook = openpyxl.load_workbook(path)
     worksheet = workbook.active
 
@@ -103,7 +103,7 @@ if "學號輸入錯誤" not in path and "無效的學號" not in path:
             Swindow.grid_rowconfigure(row, minsize=row_height)  # 設定最小行高
 
 else:
-    label_error = tk.Label(Swindow, text=path, fg="red",font=20)
+    label_error = tk.Label(Swindow, text=f"找不到學號 {number}", fg="red",font=20)
     label_error.place(x=340,y=200,anchor="center")
 
 ##顯示下方提示文字-查詢證號

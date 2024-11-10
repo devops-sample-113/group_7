@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 import tkinter as tk
 import pandas
 import openpyxl
@@ -15,31 +16,41 @@ def add_entry(label_text, initial_value, parent):
 
 def save_changes():
     try:
-
         credits = entry_credits.get()
         if credits not in ["1", "2", "3"]:
-            raise ValueError("學分只能為1、2或3，且不可為空")
+            messagebox.showerror("學分錯誤", "學分只能為1、2或3，且不可為空")
+            return  # 避免繼續執行，直接返回
 
         if not entry_course_name.get().strip():
-            raise ValueError("課程名稱不可為空")
-        if not entry_location.get().strip():
-            raise ValueError("上課地點不可為空！")
-        if not entry_outline.get().strip():
-            raise ValueError("課程大綱不可為空！")
-        if not entry_evaluation.get().strip():
-            raise ValueError("評分方式不可為空！")
+            messagebox.showerror("課程名稱錯誤", "課程名稱不可為空")
+            return
 
-            # 檢查「修課人數上限」是否為正整數
+        if not entry_location.get().strip():
+            messagebox.showerror("上課地點錯誤", "上課地點不可為空")
+            return
+
+        if not entry_outline.get().strip():
+            messagebox.showerror("課程大綱錯誤", "課程大綱不可為空")
+            return
+
+        if not entry_evaluation.get().strip():
+            messagebox.showerror("評分方式錯誤", "評分方式不可為空")
+            return
+
+        # 檢查「修課人數上限」是否為正整數
         max_students = entry_max_students.get().strip()
         if not max_students.isdigit() or int(max_students) <= 0:
-            raise ValueError("修課人數上限需為正整數，且不可為空")
+            messagebox.showerror("修課人數上限錯誤", "修課人數上限需為正整數，且不可為空")
+            return
 
         # 檢查「目前可修課人數餘額」是否為不為負的整數，且不能超過修課人數上限
         available_spots = entry_available_spots.get().strip()
         if not available_spots.isdigit() or int(available_spots) < 0:
-            raise ValueError("目前可修課人數餘額需為非負整數，且不可為空")
+            messagebox.showerror("目前可修課人數餘額錯誤", "目前可修課人數餘額需為非負整數，且不可為空")
+            return
         if int(available_spots) > int(max_students):
-            raise ValueError("目前可修課人數餘額不能超過修課人數上限")
+            messagebox.showerror("目前可修課人數餘額錯誤", "目前可修課人數餘額不能超過修課人數上限")
+            return
         
         # 更新 all_course 字典中可修改的屬性
         all_course[code]['課程名稱'] = entry_course_name.get()
@@ -74,22 +85,13 @@ def save_changes():
         success_window.geometry('300x150')
         label_success = tk.Label(success_window, text=f"{code}課程資訊編輯成功", fg="blue", font=20)
         label_success.place(x=150, y=75, anchor="center")
+        
+        # 只有在儲存成功後才關閉原編輯視窗
         detail_window.destroy()
 
-    except ValueError as ve:
-        # 顯示課程名稱為空的錯誤
-        error_window = tk.Toplevel(detail_window)
-        error_window.title("保存失敗")
-        error_window.geometry('500x150')
-        label_error = tk.Label(error_window, text=f"保存失敗: {str(ve)}", fg="red", font=20)
-        label_error.place(x=250, y=75, anchor="center")
-
     except Exception as e:
-        error_window = tk.Toplevel(detail_window)
-        error_window.title("編輯失敗")
-        error_window.geometry('300x150')
-        label_error = tk.Label(error_window, text=f"編輯失敗: {str(e)}", fg="red", font=20)
-        label_error.place(x=150, y=75, anchor="center")
+        messagebox.showerror("編輯失敗", f"編輯失敗: {str(e)}")
+
 
 ## 課程資訊頁面
 detail_window = Tk()
