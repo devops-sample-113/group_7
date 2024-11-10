@@ -25,11 +25,11 @@ canvas.configure(yscrollcommand=scrollbar.set)
 canvas.place(x=10, y=130, width=1480, height=650)
 
 # 新增框架用於承載內容
-content_frame = Frame(canvas)
+content_frame = Frame(canvas, width=1480, height=650)
 canvas.create_window((0, 0), window=content_frame, anchor="nw")
 
 # 用於顯示課程資料的子框架    ##查
-data_frame = Frame(content_frame)
+data_frame = Frame(content_frame, width=1480, height=650)
 data_frame.grid(row=1, column=0, columnspan=6, sticky="nsew")
 
 # 當視窗大小變動時，動態調整 canvas 高度
@@ -61,7 +61,7 @@ def open_new_window():
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
 button_pop.place(x=10, y=10)
 
-headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框", "餘額確認", "確認目前餘額"]
+headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框", "確認目前餘額"]
 # 在 content_frame 中加入標題行
 for col_idx, header in enumerate(headers):
     label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray")
@@ -333,7 +333,7 @@ def display_courses():
             #     label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
 
             for col_idx, value in enumerate(row):
-                button = tk.Button(data_frame, text=value if value else "", borderwidth=1, relief="solid", width=25, padx=4, pady=5, command=lambda code=code: show_course_details(code))
+                button = tk.Button(data_frame, text=value if value else "", borderwidth=1, relief="solid", padx=4, pady=5, command=lambda code=code: show_course_details(code))
                 button.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
 
             action_frame = Frame(data_frame)
