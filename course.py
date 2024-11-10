@@ -413,7 +413,7 @@ def display_courses():
                     elif action == "drop":
                         if not drop_course_from_schedule(path, course_code):
                             return
-                        display_schedule(path)
+                        #display_schedule(path)
 
                 else:
                     messagebox.showerror("錯誤", "找不到學號對應的課表")
