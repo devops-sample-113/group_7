@@ -29,8 +29,8 @@ content_frame = Frame(canvas, width=1480, height=650)
 canvas.create_window((0, 0), window=content_frame, anchor="nw")
 
 # 用於顯示課程資料的子框架    ##查
-data_frame = Frame(content_frame, width=1480, height=650)
-data_frame.grid(row=1, column=0, columnspan=6, sticky="nsew")
+#data_frame = Frame(content_frame, width=1480, height=650)
+#data_frame.grid(row=1, column=0, columnspan=6, sticky="nsew")
 
 # 當視窗大小變動時，動態調整 canvas 高度
 def on_configure(event):
@@ -63,9 +63,9 @@ button_pop.place(x=10, y=10)
 
 headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框", "確認目前餘額"]
 # 在 content_frame 中加入標題行
-for col_idx, header in enumerate(headers):
-    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray")
-    label.grid(row=0, column=col_idx, sticky="nsew", padx=2, pady=2)
+#for col_idx, header in enumerate(headers):
+#    label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray")
+#    label.grid(row=0, column=col_idx, sticky="nsew", padx=2, pady=2)
 
 # 開啟 Excel 文件
 path = '資料庫.xlsx'
@@ -308,8 +308,12 @@ def take_time(course_time):
 
 def display_courses():
     # 先清空目前顯示的內容
-    for widget in data_frame.winfo_children():
+    for widget in content_frame.winfo_children():
         widget.destroy()
+
+    for col_idx, header in enumerate(headers):
+        label = tk.Label(content_frame, text=header, borderwidth=1, relief="solid", padx=5, pady=5, bg="lightgray", width = 20)
+        label.grid(row=0, column=col_idx, sticky="nsew", padx=2, pady=2)
 
     find = 0
         
@@ -333,10 +337,10 @@ def display_courses():
             #     label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
 
             for col_idx, value in enumerate(row):
-                button = tk.Button(data_frame, text=value if value else "", borderwidth=1, relief="solid", padx=4, pady=5, command=lambda code=code: show_course_details(code))
+                button = tk.Button(content_frame, text=value if value else "", borderwidth=1, relief="solid", padx=4, pady=5, command=lambda code=code: show_course_details(code))
                 button.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
 
-            action_frame = Frame(data_frame)
+            action_frame = Frame(content_frame)
             action_frame.grid(row=row_idx + 1, column=len(headers) - 2, padx=2, pady=2, sticky="nsew")
 
             entry = tk.Entry(action_frame, width=10)
@@ -362,7 +366,7 @@ def display_courses():
                 else:
                     messagebox.showinfo("課程餘額", f"{all_course[course_code]['課程名稱']} 的餘額資訊不可用")
 
-            check_button = Button(data_frame, text="餘額確認", command=check_remaining_spots)
+            check_button = Button(content_frame, text="餘額確認", command=check_remaining_spots)
             check_button.grid(row=row_idx + 1, column=len(headers)-1, padx=2, pady=2, sticky="nsew")
 
             def number_search(entry=entry, course_code=row[1], action="add"):
@@ -416,7 +420,7 @@ def display_courses():
 
     if(find == 0):
         # 顯示 "查無課程" 訊息
-        not_found_label = tk.Label(data_frame, text="查無課程", fg="red", font=("Arial", 14, "bold"))
+        not_found_label = tk.Label(content_frame, text="查無課程", fg="red", font=("Arial", 14, "bold"))
         not_found_label.grid(row=1, column=0, columnspan=len(headers), pady=10)  # 放在標題欄下方，跨越所有列
         print("not find")
 
