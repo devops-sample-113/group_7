@@ -82,8 +82,7 @@ if path:
             for col_idx, value in enumerate(row):
                 if value in all_course:
                     course = f"{all_course[value]['課程名稱']}"
-                    button = tk.Button(Swindow, text=course, borderwidth=1, relief="solid", padx=5, pady=5, 
-                                    command=lambda code=value: show_course_details(code), fg="blue", font=tkFont.Font(family="Arial", size=10, underline=1))
+                    button = tk.Button(Swindow, text=course, borderwidth=1, relief="solid", padx=5, pady=5, command=lambda code=value: show_course_details(code), fg="blue", font=tkFont.Font(family="Arial", size=10, underline=1))
                     button.grid(row=row_idx, column=col_idx, sticky="nsew", padx=2, pady=2)
                 else:
                     # 顯示非課程代碼的普通儲存格內容

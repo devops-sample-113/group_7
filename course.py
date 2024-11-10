@@ -3,6 +3,15 @@ import tkinter as tk
 import openpyxl
 import subprocess
 from tkinter import messagebox
+import tkinter.font as tkFont
+
+##顯示課程資訊頁面
+def show_course_details(value):
+    #取得輸入資料並前往查詢
+    with open("course.txt","w") as file:
+        file.write(str(value))
+
+    subprocess.Popen(["python", "course_detail.py"])  # 執行第二個程式
 
 Swindow = Tk()
 Swindow.title("選課系統")
@@ -315,6 +324,7 @@ def display_courses():
     for row_idx, row in enumerate(worksheet_courses.iter_rows(min_row=2, max_row=53, min_col=1, max_col=5, values_only=True), start=1):
 
         course_name = row[0]  # 假設課程名稱在第1列（索引0）
+        code=row[1]
         number_name = str(row[1])
         week_name = row[2]
         start_hour, end_hour = take_time(row[2])
@@ -325,9 +335,13 @@ def display_courses():
 
             find = 1
 
+            # for col_idx, value in enumerate(row):
+            #     label = tk.Label(data_frame, text=value if value else "", borderwidth=1, relief="solid", width=25, padx=4, pady=5)
+            #     label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
+
             for col_idx, value in enumerate(row):
-                label = tk.Label(data_frame, text=value if value else "", borderwidth=1, relief="solid", width=25, padx=4, pady=5)
-                label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
+                button = tk.Button(data_frame, text=value if value else "", borderwidth=1, relief="solid", width=25, padx=4, pady=5, command=lambda code=code: show_course_details(code))
+                button.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=2, pady=2)
 
             entry = tk.Entry(data_frame, width=15)
             entry.grid(row=row_idx + 1, column=len(headers) - 1, padx=2, pady=2, sticky="nsew")
