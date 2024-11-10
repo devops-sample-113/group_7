@@ -6,7 +6,7 @@ from tkinter import messagebox
 
 Swindow = Tk()
 Swindow.title("選課系統")
-Swindow.geometry("1500x1000")
+Swindow.geometry("1500x750")
 
 # 設置 Canvas 和 Scrollbar
 canvas = Canvas(Swindow, highlightthickness=0)
@@ -22,6 +22,16 @@ canvas.create_window((0, 0), window=content_frame, anchor="nw")
 # 用於顯示課程資料的子框架    ##查
 data_frame = Frame(content_frame)
 data_frame.grid(row=1, column=0, columnspan=6, sticky="nsew")
+
+# 當視窗大小變動時，動態調整 canvas 高度
+def on_configure(event):
+    canvas.configure(scrollregion=canvas.bbox("all"))
+    # 根據視窗高度調整 canvas 的高度
+    new_height = Swindow.winfo_height() - 130  # 130 是 canvas 的 y 位置
+    canvas.place_configure(height=new_height)
+
+# 綁定視窗大小變動事件
+Swindow.bind("<Configure>", on_configure)
 
 def on_configure(event):
     canvas.configure(scrollregion=canvas.bbox("all"))
