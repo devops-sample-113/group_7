@@ -4,24 +4,45 @@ import pandas
 import openpyxl
 import subprocess
 
+def add_entry(label_text, initial_value, parent):
+    tk.Label(parent, text=label_text).pack(anchor="w")
+    entry = tk.Entry(parent)
+    # 檢查是否為空值或 nan 值，若不是，才插入初始值
+    if pandas.notna(initial_value):
+        entry.insert(0, str(initial_value))
+    entry.pack(fill="x", padx=10, pady=5)
+    return entry
+
 def save_changes():
     try:
 
-        # 檢查「課程名稱」是否為空
+        credits = entry_credits.get()
+        if credits not in ["1", "2", "3"]:
+            raise ValueError("學分只能為1、2或3，且不可為空")
+
         if not entry_course_name.get().strip():
             raise ValueError("課程名稱不可為空")
         if not entry_location.get().strip():
             raise ValueError("上課地點不可為空！")
-        
-        # 格式化開課時間
-        course_day = day_var.get()
-        course_start_time = start_time_var.get()
-        course_end_time = end_time_var.get()
-        course_time = f"{course_day} {course_start_time}-{course_end_time}"
+        if not entry_outline.get().strip():
+            raise ValueError("課程大綱不可為空！")
+        if not entry_evaluation.get().strip():
+            raise ValueError("評分方式不可為空！")
+
+            # 檢查「修課人數上限」是否為正整數
+        max_students = entry_max_students.get().strip()
+        if not max_students.isdigit() or int(max_students) <= 0:
+            raise ValueError("修課人數上限需為正整數，且不可為空")
+
+        # 檢查「目前可修課人數餘額」是否為不為負的整數，且不能超過修課人數上限
+        available_spots = entry_available_spots.get().strip()
+        if not available_spots.isdigit() or int(available_spots) < 0:
+            raise ValueError("目前可修課人數餘額需為非負整數，且不可為空")
+        if int(available_spots) > int(max_students):
+            raise ValueError("目前可修課人數餘額不能超過修課人數上限")
         
         # 更新 all_course 字典中可修改的屬性
         all_course[code]['課程名稱'] = entry_course_name.get()
-        all_course[code]['開課時間'] = course_time
         all_course[code]['上課地點'] = entry_location.get()
         all_course[code]['課堂助教1'] = entry_ta1.get()
         all_course[code]['課堂助教2'] = entry_ta2.get()
@@ -59,9 +80,9 @@ def save_changes():
         # 顯示課程名稱為空的錯誤
         error_window = tk.Toplevel(detail_window)
         error_window.title("保存失敗")
-        error_window.geometry('300x150')
+        error_window.geometry('500x150')
         label_error = tk.Label(error_window, text=f"保存失敗: {str(ve)}", fg="red", font=20)
-        label_error.place(x=150, y=75, anchor="center")
+        label_error.place(x=250, y=75, anchor="center")
 
     except Exception as e:
         error_window = tk.Toplevel(detail_window)
@@ -74,6 +95,14 @@ def save_changes():
 detail_window = Tk()
 detail_window.title("課程編輯頁面")
 detail_window.geometry('500x650')
+
+# 建立一個頂部的 Frame 來放置按鈕，並靠右對齊
+top_frame = tk.Frame(detail_window)
+top_frame.pack(fill="x", side="top", anchor="ne")  # 設定頂部對齊並充滿整個寬度
+
+# 在 Frame 中放置保存按鈕，並靠右對齊
+save_button = tk.Button(top_frame, text="保存", command=save_changes)
+save_button.pack(side="right", padx=10, pady=10)  # 右側對齊並設定邊距
 
 try:
     with open("course.txt", "r") as file:
@@ -103,53 +132,19 @@ def add_entry(label_text, initial_value, parent):
 # 顯示並編輯課程資訊
 if code in all_course:
     tk.Label(detail_window, text=f"課程代碼: {code}").pack(anchor="w", pady=5)
+    tk.Label(detail_window, text=f"開課時間: {all_course[code]['開課時間']}").pack(anchor="w", pady=5)
     tk.Label(detail_window, text=f"授課教授: {all_course[code]['授課教授']}").pack(anchor="w", pady=5)
     tk.Label(detail_window, text=f"教師證號: {all_course[code]['授課教師證號']}").pack(anchor="w", pady=5)
+
+    ta1_id = all_course[code]['課堂助教1'] if pandas.notna(all_course[code]['課堂助教1']) else ""
+    ta2_id = all_course[code]['課堂助教2'] if pandas.notna(all_course[code]['課堂助教2']) else ""
+
+    #可更改課程資訊
     entry_course_name = add_entry("課程名稱:", all_course[code]['課程名稱'], detail_window)
-    
-    # 開課時間標籤
-    tk.Label(detail_window, text="開課時間:").pack(anchor="w")
-
-    # 建立開課時間的容器框架
-    time_frame = Frame(detail_window)
-    time_frame.pack(fill="x", padx=10, pady=5)
-
-    if '開課時間' in all_course[code] and all_course[code]['開課時間']:
-        course_day, course_time = all_course[code]['開課時間'].split()
-        course_start_time, course_end_time = course_time.split('-')
-    else:
-        # 預設值，如果無法取得開課時間
-        course_day, course_start_time, course_end_time = "星期一", "08:00", "09:00"
-
-    # 星期選項
-    day_var = StringVar()
-    day_var.set(course_day)
-    day_options = ["星期一", "星期二", "星期三", "星期四", "星期五"]
-    day_menu = OptionMenu(time_frame, day_var, *day_options)
-    day_menu.pack(side="left")
-
-    # 課程開始時間選項
-    start_time_var = StringVar()
-    start_time_var.set(course_start_time)
-    start_time_options = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"]
-    start_time_menu = OptionMenu(time_frame, start_time_var, *start_time_options)
-    start_time_menu.pack(side="left")
-
-    # 加入 "-" 標記
-    separator_label = Label(time_frame, text="~")
-    separator_label.pack(side="left")
-
-    # 課程結束時間選項
-    end_time_var = StringVar()
-    end_time_var.set(course_end_time)
-    end_time_options = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"]
-    end_time_menu = OptionMenu(time_frame, end_time_var, *end_time_options)
-    end_time_menu.pack(side="left")
-    
     # 其他課程資訊
     entry_location = add_entry("上課地點:", all_course[code]['上課地點'], detail_window)
-    entry_ta1 = add_entry("課堂助教1:", all_course[code]['課堂助教1'], detail_window)
-    entry_ta2 = add_entry("課堂助教2:", all_course[code]['課堂助教2'], detail_window)
+    entry_ta1 = add_entry("課堂助教1證號:", ta1_id, detail_window)
+    entry_ta2 = add_entry("課堂助教2證號:", ta2_id, detail_window)
     entry_outline = add_entry("課程大綱:", all_course[code]['課程大綱'], detail_window)
     entry_evaluation = add_entry("評分方式:", all_course[code]['評分方式'], detail_window)
     entry_max_students = add_entry("修課人數上限:", all_course[code]['修課人數上限'], detail_window)
@@ -157,9 +152,5 @@ if code in all_course:
     entry_credits = add_entry("學分:", all_course[code]['學分'], detail_window)
 else:
     tk.Label(detail_window, text="找不到課程名稱").pack()
-
-# 保存按鈕
-save_button = tk.Button(detail_window, text="保存", command=save_changes)
-save_button.pack(pady=20)
 
 detail_window.mainloop()
