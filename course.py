@@ -2,8 +2,15 @@ from tkinter import *
 import tkinter as tk
 import openpyxl
 import subprocess
+import os
+import sys
 from tkinter import messagebox
 import tkinter.font as tkFont
+
+def restart_app():
+    Swindow.destroy()  # 關閉當前主視窗
+    python = sys.executable  # 取得 Python 執行檔路徑
+    os.execl(python, python, *sys.argv)  # 重新執行當前的 Python 腳本
 
 ##顯示課程資訊頁面
 def show_course_details(value):
@@ -59,7 +66,10 @@ def open_new_window():
     subprocess.Popen(["python", "schedule_search.py"])  # 執行第二個程式
 
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
-button_pop.place(x=10, y=10)
+button_pop.place(x=100, y=10)
+
+button_restart = Button(Swindow, text="重新載入首頁", command=restart_app)
+button_restart.place(x=10, y=10)
 
 headers = ["課程名稱", "課程代碼", "開課時間", "上課地點", "授課教授", "加退選框", "確認目前餘額"]
 # 在 content_frame 中加入標題行
