@@ -46,18 +46,6 @@ def save_changes():
         # 更新 all_course 字典中可修改的屬性
         all_course[code]['課程名稱'] = entry_course_name.get()
         all_course[code]['上課地點'] = entry_location.get()
-        ta1_value = entry_ta1.get()
-        ta2_value = entry_ta2.get()
-        if ta1_value: all_course[code]['課堂助教1'] = ta1_value
-        else:
-            print("TA1:", repr(entry_ta1.get()))
-            all_course[code].pop('課堂助教1', None)
-            all_course[code].pop('助教證號1', None)
-        if ta2_value: all_course[code]['課堂助教2'] = ta2_value
-        else:
-            print("TA2:", repr(entry_ta2.get()))
-            all_course[code].pop('課堂助教2', None)
-            all_course[code].pop('助教證號2', None)
         all_course[code]['課程大綱'] = entry_outline.get()
         all_course[code]['評分方式'] = entry_evaluation.get()
         all_course[code]['修課人數上限'] = entry_max_students.get()
@@ -138,16 +126,17 @@ if code in all_course:
     tk.Label(detail_window, text=f"開課時間: {all_course[code]['開課時間']}").pack(anchor="w", pady=5)
     tk.Label(detail_window, text=f"授課教授: {all_course[code]['授課教授']}").pack(anchor="w", pady=5)
     tk.Label(detail_window, text=f"教師證號: {all_course[code]['授課教師證號']}").pack(anchor="w", pady=5)
+    ta1=all_course[code]['課堂助教1']
+    ta2=all_course[code]['課堂助教2']
+    if pandas.notna(ta1):
+        if pandas.notna(ta2): tk.Label(detail_window, text=f"課堂助教: {ta1}、{ta2}").pack(anchor="w", pady=5)
+        else: tk.Label(detail_window, text=f"課堂助教: {ta1}").pack(anchor="w", pady=5)
 
-    ta1_id = all_course[code]['課堂助教1'] if pandas.notna(all_course[code]['課堂助教1']) else ""
-    ta2_id = all_course[code]['課堂助教2'] if pandas.notna(all_course[code]['課堂助教2']) else ""
 
     #可更改課程資訊
     entry_course_name = add_entry("課程名稱:", all_course[code]['課程名稱'], detail_window)
     # 其他課程資訊
     entry_location = add_entry("上課地點:", all_course[code]['上課地點'], detail_window)
-    entry_ta1 = add_entry("課堂助教1證號:", ta1_id, detail_window)
-    entry_ta2 = add_entry("課堂助教2證號:", ta2_id, detail_window)
     entry_outline = add_entry("課程大綱:", all_course[code]['課程大綱'], detail_window)
     entry_evaluation = add_entry("評分方式:", all_course[code]['評分方式'], detail_window)
     entry_max_students = add_entry("修課人數上限:", all_course[code]['修課人數上限'], detail_window)
