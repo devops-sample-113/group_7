@@ -10,7 +10,8 @@ import tkinter.font as tkFont
 def restart_app():
     Swindow.destroy()  # 關閉當前主視窗
     python = sys.executable  # 取得 Python 執行檔路徑
-    os.execl(python, python, *sys.argv)  # 重新執行當前的 Python 腳本
+    subprocess.Popen([python] + sys.argv)  
+    subprocess
 
 ##顯示課程資訊頁面
 def show_course_details(value):
