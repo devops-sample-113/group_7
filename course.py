@@ -5,6 +5,7 @@ import subprocess
 import os
 import sys
 from tkinter import messagebox
+import re
 import tkinter.font as tkFont
 
 def restart_app():
@@ -385,6 +386,11 @@ def display_courses():
                 if not student_id:
                     messagebox.showwarning("錯誤", "請輸入學號")
                     return
+                elif not re.match(r"^D\d{7}$", student_id):
+                    # 格式不符合，顯示錯誤訊息
+                    messagebox.showerror("輸入錯誤", "學號格式錯誤")
+                    entry.delete(0, END)
+                    return
 
                 entry.delete(0, END)
                 path = search(student_id)
@@ -427,7 +433,7 @@ def display_courses():
                         #display_schedule(path)
 
                 else:
-                    messagebox.showerror("錯誤", "找不到學號對應的課表")
+                    messagebox.showerror("錯誤", "找不到學號")
 
     if(find == 0):
         # 顯示 "查無課程" 訊息
