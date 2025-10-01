@@ -118,6 +118,6 @@ with open("data.txt","w") as file:
 
 ##返回按鈕
 back=Button(Swindow,text="返回",anchor="s",command=return_search)
-back.place(x=800,y=395,anchor="center")
+back.place(x=600,y=395,anchor="center")
 
 Swindow.mainloop()

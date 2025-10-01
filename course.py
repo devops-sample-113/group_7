@@ -68,7 +68,7 @@ def open_new_window():
     subprocess.Popen(["python", "schedule_search.py"])  # 執行第二個程式
 
 button_pop = Button(Swindow, text="課表頁面", command=open_new_window)
-button_pop.place(x=100, y=10)
+button_pop.place(x=130, y=10)
 
 button_restart = Button(Swindow, text="重新載入首頁", command=restart_app)
 button_restart.place(x=10, y=10)
@@ -288,19 +288,19 @@ Label(Swindow, text="教授名稱：").place(x=550, y=100)
 professor_entry = Entry(Swindow, width=20)
 professor_entry.place(x=620, y=100)
 
-Label(Swindow, text="星期：").place(x=780, y=15)
+Label(Swindow, text="星期：").place(x=820, y=15)
 week_var = tk.StringVar(Swindow)
 week_var.set(week_options[0])  # 設定初始值
 week_menu = tk.OptionMenu(Swindow, week_var, *week_options)
 week_menu.config(width=10)  # 設置下拉選單的寬度
-week_menu.place(x=825, y=10)
+week_menu.place(x=865, y=10)
 
-Label(Swindow, text="時間：").place(x=780, y=45)
+Label(Swindow, text="時間：").place(x=820, y=45)
 time_var = tk.StringVar(Swindow)
 time_var.set(time_options[0])  # 設定初始值
 time_menu = tk.OptionMenu(Swindow, time_var, *time_options)
 time_menu.config(width=10)  # 設置下拉選單的寬度
-time_menu.place(x=825, y=40)
+time_menu.place(x=865, y=40)
 
 Button(Swindow, text="搜尋", command=update_keywords).place(x=900, y=95)
 
